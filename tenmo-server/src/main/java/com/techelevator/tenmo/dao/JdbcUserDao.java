@@ -1,6 +1,7 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.security.UserNotActivatedException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -77,6 +78,53 @@ public class JdbcUserDao implements UserDao {
         }
 
         return true;
+    }
+
+    @Override
+    public BigDecimal getUserBalance(int id) {
+        String sql = "SELECT balance FROM accounts WHERE user_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
+        if (rowSet.next()){
+            return rowSet.getBigDecimal("balance");
+        }
+        throw new UserNotActivatedException("User " + id + " is not activated");
+    }
+
+    @Override
+    public List<String> getUserHistory(int id){
+        List<String> history = new ArrayList<>();
+        String sql = "SELECT t.transfer_id, t.account_to, t.amount " +
+                "FROM transfers t " +
+                "JOIN accounts a ON t.account_from = a.account_id " +
+                "WHERE a.user_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
+        while(rowSet.next()){
+            history.add(rowSet.getInt("transfer_id") + "|To: |" +
+                    getUserByAccountID(rowSet.getInt("account_id")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
+        }
+
+        sql = "SELECT t.transfer_id, t.account_from, t.amount " +
+                "FROM transfers t " +
+                "JOIN accounts a ON t.account_to = a.account_id " +
+                "WHERE a.user_id = ?;";
+        rowSet = jdbcTemplate.queryForRowSet(sql, id);
+        while(rowSet.next()){
+            history.add(rowSet.getInt("transfer_id") + "|From: |" +
+                    getUserByAccountID(rowSet.getInt("account_id")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
+        }
+        return history;
+    }
+
+    private User getUserByAccountID(int accId){
+        String sql = "SELECT user_id, user_name, password_hash " +
+                "FROM users u " +
+                "JOIN accounts a ON a.user_id = u.user_id " +
+                "WHERE a.account_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accId);
+        if (rowSet.next()){
+            return mapRowToUser(rowSet);
+        }
+        return null;
     }
 
     private User mapRowToUser(SqlRowSet rs) {

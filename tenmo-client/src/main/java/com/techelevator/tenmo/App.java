@@ -6,6 +6,8 @@ import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
 
+import java.util.List;
+
 public class App {
 
 private static final String API_BASE_URL = "http://localhost:8080/";
@@ -68,12 +70,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewCurrentBalance() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("Your current account balance is: $" + authenticationService.balance(currentUser.getUser().getId()));
 	}
 
 	private void viewTransferHistory() {
-		// TODO Auto-generated method stub
+		List<String> history = authenticationService.transferHistory(currentUser.getUser().getId());
+		for (String h : history){
+			System.out.println(h);
+		}
 		
 	}
 
@@ -83,7 +87,13 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-		// TODO Auto-generated method stub
+		System.out.println("-------------------------------------------");
+		System.out.println("Users");
+		System.out.println("ID \t Name");
+		System.out.println("-------------------------------------------");
+    	for ()
+			authenticationService.listAll();
+
 		
 	}
 

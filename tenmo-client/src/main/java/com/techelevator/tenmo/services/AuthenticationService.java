@@ -1,8 +1,11 @@
 package com.techelevator.tenmo.services;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
+import com.techelevator.tenmo.model.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,7 +35,19 @@ public class AuthenticationService {
     	HttpEntity<UserCredentials> entity = createRequestEntity(credentials);
         sendRegistrationRequest(entity);
     }
-    
+
+    public BigDecimal balance(int id){
+		return restTemplate.getForObject(baseUrl + "balance/" + id, BigDecimal.class);
+	}
+
+	public List<String> transferHistory(int id){
+    	return restTemplate.getForObject(baseUrl + "history/" + id, List.class);
+	}
+
+	public List<User> listAll(){
+    	return restTemplate.getForObject(baseUrl + "list", List.class);
+	}
+
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {
     	HttpHeaders headers = new HttpHeaders();
     	headers.setContentType(MediaType.APPLICATION_JSON);
@@ -58,6 +73,12 @@ public class AuthenticationService {
 			throw new AuthenticationServiceException(message);
         }
 	}
+
+	//private ResponseEntity<BigDecimal> sendBalanceRequest(HttpEntity<UserCredentials> entity){
+
+
+	//}
+
 
 	private String createLoginExceptionMessage(RestClientResponseException ex) {
 		String message = null;
