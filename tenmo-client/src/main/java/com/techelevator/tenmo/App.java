@@ -87,14 +87,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-		System.out.println("-------------------------------------------");
-		System.out.println("Users");
-		System.out.println("ID \t Name");
-		System.out.println("-------------------------------------------");
-    	for ()
-			authenticationService.listAll();
 
-		
 	}
 
 	private void requestBucks() {
