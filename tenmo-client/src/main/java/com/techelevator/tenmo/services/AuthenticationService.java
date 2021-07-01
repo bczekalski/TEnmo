@@ -48,6 +48,10 @@ public class AuthenticationService {
     	return restTemplate.getForObject(baseUrl + "list", List.class);
 	}
 
+	public String getTransfer(int userId, int id){
+    	return restTemplate.getForObject(baseUrl + "transfer/" + userId + "/" + id, String.class);
+	}
+
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {
     	HttpHeaders headers = new HttpHeaders();
     	headers.setContentType(MediaType.APPLICATION_JSON);
@@ -74,10 +78,6 @@ public class AuthenticationService {
         }
 	}
 
-	//private ResponseEntity<BigDecimal> sendBalanceRequest(HttpEntity<UserCredentials> entity){
-
-
-	//}
 
 
 	private String createLoginExceptionMessage(RestClientResponseException ex) {

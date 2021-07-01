@@ -1,12 +1,14 @@
 package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class App {
 
@@ -74,12 +76,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewTransferHistory() {
-		List<String> history = authenticationService.transferHistory(currentUser.getUser().getId());
-		for (String h : history){
-			System.out.println(h);
-		}
-		
-	}
+	
+    }
 
 	private void viewPendingRequests() {
 		// TODO Auto-generated method stub
@@ -87,7 +85,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-
+		/*System.out.println("-------------------------------------------");
+		System.out.println("Users");
+		System.out.println("ID \t Name");
+		System.out.println("-------------------------------------------");
+		List<User> users = authenticationService.listAll();
+		for (User u : users){
+			System.out.println(u.getId() + " \t " + u.getUsername());
+		}*/
 	}
 
 	private void requestBucks() {
@@ -153,5 +158,18 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		String username = console.getUserInput("Username");
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
+	}
+
+	private boolean isInteger(String s){
+		try {
+			Integer.parseInt(s);
+		} catch (NumberFormatException e){
+			System.out.println("Error, you did not enter an integer.");
+			return false;
+		}catch (NullPointerException e){
+			System.out.println("Error, you did not enter anything.");
+			return false;
+		}
+		return true;
 	}
 }
