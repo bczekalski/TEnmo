@@ -79,13 +79,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		List<String> history = authenticationService.transferHistory(currentUser.getUser().getId());
 		System.out.println("-------------------------------------------");
 		System.out.println("Transfers");
-		System.out.println("ID \t From/To \t Amount");
+		System.out.println("ID          From/To                 Amount");
 		System.out.println("-------------------------------------------");
 		for (String h : history){
 			String[] s = h.split("\\|");
 			System.out.println(s[0] + " \t " + s[1] + s[2] + " \t\t " + s[3]);
 		}
-		System.out.println("Please enter the transfer ID to view details (0 to cancel): ");
+		System.out.println("-------------------------------------------");
+		System.out.println("Please enter transfer ID to view details (0 to cancel): ");
 		Scanner scanner = new Scanner(System.in);
 		String input = scanner.nextLine();
 		if (isInteger(input)){
