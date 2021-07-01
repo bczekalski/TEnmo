@@ -75,9 +75,15 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void viewTransferHistory() {
 		List<String> history = authenticationService.transferHistory(currentUser.getUser().getId());
+		System.out.println("-------------------------------------------");
+		System.out.println("Transfers");
+		System.out.println("ID          From/To                 Amount");
+		System.out.println("-------------------------------------------");
 		for (String h : history){
 			System.out.println(h);
 		}
+		System.out.println("-------------------------------------------");
+		System.out.println("Please enter transfer ID to view details (0 to cancel): ");
 		
 	}
 
