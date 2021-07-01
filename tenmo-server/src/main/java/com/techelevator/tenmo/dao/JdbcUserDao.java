@@ -100,7 +100,7 @@ public class JdbcUserDao implements UserDao {
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
         while(rowSet.next()){
             history.add(rowSet.getInt("transfer_id") + "|To: |" +
-                    getUserByAccountID(rowSet.getInt("account_id")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
+                    getUserByAccountID(rowSet.getInt("account_to")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
         }
 
         sql = "SELECT t.transfer_id, t.account_from, t.amount " +
@@ -110,13 +110,29 @@ public class JdbcUserDao implements UserDao {
         rowSet = jdbcTemplate.queryForRowSet(sql, id);
         while(rowSet.next()){
             history.add(rowSet.getInt("transfer_id") + "|From: |" +
-                    getUserByAccountID(rowSet.getInt("account_id")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
+                    getUserByAccountID(rowSet.getInt("account_from")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
         }
         return history;
     }
+    @Override
+    public String getTransfer(int userId, int id){
+        String sql = "SELECT transfer_id, t.account_from, t.account_to, " +
+                "ts.transfer_status_desc, tt.transfer_type_desc, t.amount " +
+                "FROM transfers t " +
+                "JOIN transfer_statuses ts ON ts.transfer_status_id = t.transfer_status_id " +
+                "JOIN transfer_types tt ON tt.transfer_type_id = t.transfer_type_id " +
+                "JOIN accounts a ON a.account_id = t.account_to OR a.account_id = t.account_from " +
+                "JOIN users u ON u.user_id = a.user_id " +
+                "WHERE transfer_id = ? AND u.user_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id, userId);
+        if (rowSet.next()){
+            return mapTransferToString(rowSet);
+        }
+        return null;
+    }
 
     private User getUserByAccountID(int accId){
-        String sql = "SELECT user_id, user_name, password_hash " +
+        String sql = "SELECT u.user_id, username, password_hash " +
                 "FROM users u " +
                 "JOIN accounts a ON a.user_id = u.user_id " +
                 "WHERE a.account_id = ?;";
@@ -135,5 +151,12 @@ public class JdbcUserDao implements UserDao {
         user.setActivated(true);
         user.setAuthorities("USER");
         return user;
+    }
+
+    private String mapTransferToString(SqlRowSet r){
+        return r.getInt("transfer_id") + "|" + getUserByAccountID(r.getInt("account_from")).getUsername() + "|" +
+                getUserByAccountID(r.getInt("account_to")).getUsername() + "|" +
+                r.getString("transfer_type_desc") + "|" +
+                r.getString("transfer_status_desc") + "|" + r.getBigDecimal("amount");
     }
 }

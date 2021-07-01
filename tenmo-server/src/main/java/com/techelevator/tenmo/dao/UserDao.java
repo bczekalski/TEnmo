@@ -18,4 +18,6 @@ public interface UserDao {
     BigDecimal getUserBalance(int id);
 
     List<String> getUserHistory(int id);
+
+    String getTransfer(int userId, int id);
 }

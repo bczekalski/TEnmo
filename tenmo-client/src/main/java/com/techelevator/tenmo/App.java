@@ -1,12 +1,14 @@
 package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class App {
 
@@ -80,11 +82,27 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		System.out.println("ID          From/To                 Amount");
 		System.out.println("-------------------------------------------");
 		for (String h : history){
-			System.out.println(h);
+			String[] s = h.split("\\|");
+			System.out.println(s[0] + " \t " + s[1] + s[2] + " \t\t " + s[3]);
 		}
 		System.out.println("-------------------------------------------");
 		System.out.println("Please enter transfer ID to view details (0 to cancel): ");
-		
+		Scanner scanner = new Scanner(System.in);
+		String input = scanner.nextLine();
+		if (isInteger(input)){
+			int id = Integer.parseInt(input);
+			String transfer = authenticationService.getTransfer(currentUser.getUser().getId(), id);
+			if (transfer != null){
+				String[] s = transfer.split("\\|");
+				System.out.println("--------------------------------------------");
+				System.out.println("Transfer Details");
+				System.out.println("--------------------------------------------");
+				System.out.println("Id: " +s[0]+ "\nFrom: " + s[1] + "\nTo: " + s[2] +
+						"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
+			}else{
+				System.out.println("Error, the transfer ID you entered is not associated with a transfer.");
+			}
+		}
 	}
 
 	private void viewPendingRequests() {
@@ -93,7 +111,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-
+		/*System.out.println("-------------------------------------------");
+		System.out.println("Users");
+		System.out.println("ID \t Name");
+		System.out.println("-------------------------------------------");
+		List<User> users = authenticationService.listAll();
+		for (User u : users){
+			System.out.println(u.getId() + " \t " + u.getUsername());
+		}*/
 	}
 
 	private void requestBucks() {
@@ -159,5 +184,18 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		String username = console.getUserInput("Username");
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
+	}
+
+	private boolean isInteger(String s){
+		try {
+			Integer.parseInt(s);
+		} catch (NumberFormatException e){
+			System.out.println("Error, you did not enter an integer.");
+			return false;
+		}catch (NullPointerException e){
+			System.out.println("Error, you did not enter anything.");
+			return false;
+		}
+		return true;
 	}
 }
