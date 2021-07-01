@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller to authenticate users.
@@ -69,13 +70,24 @@ public class AuthenticationController {
     }
 
     @RequestMapping(path = "/list", method = RequestMethod.GET)
-    public List<User> listAll(){
-        return userDao.findAll();
+    public Map<Integer, String> listAll(){
+        return userDao.listUsers();
     }
 
     @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
     public String getTransfer(@PathVariable int userID, @PathVariable int id){
         return userDao.getTransfer(userID, id);
+    }
+
+    @RequestMapping(path = "/valid/{id}", method = RequestMethod.GET)
+    public boolean isValidUser(@PathVariable int id){
+        return userDao.isValidUser(id);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(path = "/send/{receiverId}/{senderId}/{amount}", method = RequestMethod.POST)
+    public int sendMoney(@PathVariable int receiverId, @PathVariable int senderId, @PathVariable BigDecimal amount){
+        return userDao.sendMoney(senderId, receiverId, amount);
     }
 
     /**

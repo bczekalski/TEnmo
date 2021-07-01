@@ -10,8 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class JdbcUserDao implements UserDao {
@@ -44,6 +43,27 @@ public class JdbcUserDao implements UserDao {
             users.add(user);
         }
         return users;
+    }
+
+    @Override
+    public Map<Integer, String> listUsers(){
+        Map<Integer, String> users = new HashMap<>();
+        String sql = "SELECT user_id, username FROM users;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+        while(rowSet.next()){
+            users.put(rowSet.getInt("user_id"), rowSet.getString("username"));
+        }
+        return users;
+    }
+
+    @Override
+    public boolean isValidUser(int id){
+        String sql = "SELECT user_id FROM users WHERE user_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
+        if(rowSet.next()){
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -129,6 +149,35 @@ public class JdbcUserDao implements UserDao {
             return mapTransferToString(rowSet);
         }
         return null;
+    }
+
+    @Override
+    public int sendMoney(int receiverId, int senderId, BigDecimal amount){
+        String sql = "UPDATE account SET balance = ? WHERE user_id = ?;";
+        try {
+            jdbcTemplate.update(sql, amount.multiply(BigDecimal.valueOf(-1)), senderId);
+            jdbcTemplate.update(sql, amount, receiverId);
+        }catch(DataAccessException e){
+            return 0;
+        }
+        return addTransfer(2, 2, senderId, receiverId, amount);
+    }
+
+    private int addTransfer(int transferTypeId, int transferStatusId, int senderUserId, int receiverUserId, BigDecimal amount){
+        String sql = "SELECT account_id FROM accounts WHERE user_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, senderUserId);
+        int senderAccountId = rowSet.getInt("account_id");
+
+        rowSet = jdbcTemplate.queryForRowSet(sql, receiverUserId);
+        int receiverAccountId = rowSet.getInt("account_id");
+
+        sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, " +
+                "account_from, account_to, amount " +
+                "VALUES (?, ?, ?, ?, ?);";
+        int newId = jdbcTemplate.queryForObject(sql, Integer.class, transferTypeId, transferStatusId,
+                senderAccountId, receiverAccountId, amount);
+        return newId;
+
     }
 
     private User getUserByAccountID(int accId){

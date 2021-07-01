@@ -2,6 +2,8 @@ package com.techelevator.tenmo.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.UserCredentials;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class AuthenticationService {
 
@@ -44,12 +47,25 @@ public class AuthenticationService {
     	return restTemplate.getForObject(baseUrl + "history/" + id, List.class);
 	}
 
-	public List<User> listAll(){
-    	return restTemplate.getForObject(baseUrl + "list", List.class);
+	public Map listAll(){
+    	return restTemplate.getForObject(baseUrl + "list", Map.class);
 	}
 
 	public String getTransfer(int userId, int id){
     	return restTemplate.getForObject(baseUrl + "transfer/" + userId + "/" + id, String.class);
+	}
+
+	public boolean isValidUser(int id){
+    	return restTemplate.getForObject(baseUrl + "valid/" + id, Boolean.class);
+	}
+
+	public int sendMoney(int senderId, int receiverId, BigDecimal amount, UserCredentials credentials){
+    	HttpEntity<UserCredentials> entity = createRequestEntity(credentials);
+    	try{
+    		return restTemplate.postForObject(baseUrl + "send/"+receiverId+"/"+senderId+"/"+amount, entity, Integer.class);
+		}catch(NullPointerException e) {
+			return 0;
+		}
 	}
 
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {

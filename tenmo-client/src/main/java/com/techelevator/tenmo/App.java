@@ -7,7 +7,10 @@ import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class App {
@@ -111,14 +114,45 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-		/*System.out.println("-------------------------------------------");
-		System.out.println("Users");
-		System.out.println("ID \t Name");
 		System.out.println("-------------------------------------------");
-		List<User> users = authenticationService.listAll();
+		System.out.println("Users");
+		System.out.println("ID \t\t Name");
+		System.out.println("-------------------------------------------");
+		Map<Integer, String> userMap = authenticationService.listAll();
+		List<User> users = new ArrayList<>();
+		for (Integer key : userMap.keySet()){
+			User user = new User();
+			user.setId(key);
+			user.setUsername(userMap.get(key));
+			users.add(user);
+		}
 		for (User u : users){
-			System.out.println(u.getId() + " \t " + u.getUsername());
-		}*/
+			System.out.println(u.getId() + "\t\t" + u.getUsername());
+		}
+		System.out.println("-------------------------------------------");
+		System.out.println("Enter ID of user you are sending to (0 to cancel): ");
+		Scanner scanner = new Scanner(System.in);
+		String input = scanner.nextLine();
+		if (isInteger(input)){
+			int receiverId = Integer.parseInt(input);
+			if(authenticationService.isValidUser(receiverId)){
+				System.out.println("Enter amount: ");
+				input = scanner.nextLine();
+				double a = Double.parseDouble(input);
+				BigDecimal amount = BigDecimal.valueOf(a);
+				int transferID = authenticationService.sendMoney(currentUser.getUser().getId(), receiverId, amount,
+						collectUserCredentials());
+				String transfer = authenticationService.getTransfer(currentUser.getUser().getId(), transferID);
+					String[] s = transfer.split("\\|");
+					System.out.println("--------------------------------------------");
+					System.out.println("Transfer Details");
+					System.out.println("--------------------------------------------");
+					System.out.println("Id: " +s[0]+ "\nFrom: " + s[1] + "\nTo: " + s[2] +
+							"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
+
+			}
+
+		}
 	}
 
 	private void requestBucks() {
@@ -190,7 +224,20 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		try {
 			Integer.parseInt(s);
 		} catch (NumberFormatException e){
-			System.out.println("Error, you did not enter an integer.");
+			System.out.println("Error, you did not enter a number.");
+			return false;
+		}catch (NullPointerException e){
+			System.out.println("Error, you did not enter anything.");
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isDouble(String s){
+		try {
+			Double.parseDouble(s);
+		} catch (NumberFormatException e){
+			System.out.println("Error, you did not enter a number.");
 			return false;
 		}catch (NullPointerException e){
 			System.out.println("Error, you did not enter anything.");
