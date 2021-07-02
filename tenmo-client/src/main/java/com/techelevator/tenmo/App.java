@@ -88,16 +88,49 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
-		
+    	
+
+
+    	System.out.println("-------------------------------------------");
+    	System.out.println("Pending Transfers");
+		System.out.println("ID          To                     Amount");
+    	System.out.println("-------------------------------------------");
+
+
+
+    	System.out.println("-------------------------------------------");
+		System.out.println("Please enter transfer ID to approve/reject (0 to cancel): ");
+
+
 	}
 
 	private void sendBucks() {
 
+		System.out.println("-------------------------------------------");
+		System.out.println("Users");
+		System.out.println("ID          Name");
+		System.out.println("-------------------------------------------");
+
+
+		System.out.println("-------------------------------------------");
+		System.out.println("Enter ID of user you are sending to (0 to cancel): ");
+		System.out.println("Enter amount: ");
+
 	}
 
 	private void requestBucks() {
-		// TODO Auto-generated method stub
+
+    	  System.out.println("-------------------------------------------");
+    	  System.out.println("Users");
+    	  System.out.println("ID          Name");
+    	  System.out.println("-------------------------------------------");
+
+
+    	  System.out.println("-------------------------------------------");
+    	  System.out.println("Enter ID of user you are sending to (0 to cancel): ");
+    	  System.out.println("Enter amount: ");
+
+
 		
 	}
 	

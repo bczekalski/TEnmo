@@ -2,6 +2,7 @@ package com.techelevator.tenmo.controller;
 
 import javax.validation.Valid;
 
+import org.apache.coyote.Request;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -72,6 +73,7 @@ public class AuthenticationController {
     public List<User> listAll(){
         return userDao.findAll();
     }
+
 
     /**
      * Object to return as body in JWT Authentication.
