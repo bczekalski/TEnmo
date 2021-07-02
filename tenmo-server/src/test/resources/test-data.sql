@@ -1,11 +1,9 @@
 TRUNCATE users, accounts, transfers CASCADE;
 
-
 INSERT INTO users (user_id, username, password_hash)
 VALUES (1001, 'test 1', 'password 1'),
        (1002, 'test 2', 'password 2'),
        (1003, 'test 3', 'password 3');
-
 
 INSERT INTO accounts (account_id, user_id, balance)
 VALUES (2001, 1001, 970),
