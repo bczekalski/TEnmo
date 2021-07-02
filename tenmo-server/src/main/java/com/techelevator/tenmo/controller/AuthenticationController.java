@@ -67,7 +67,7 @@ public class AuthenticationController {
         return userDao.getUserBalance(id);
     }
 
-    @RequestMapping(path = "/history/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/get/history/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
     public List<String> getHistory(@PathVariable int id){
         return userDao.getUserHistory(id);
@@ -79,7 +79,7 @@ public class AuthenticationController {
         return userDao.listUsers();
     }
 
-    @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/get/transfer/{userID}/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
     public String getTransfer(@PathVariable int userID, @PathVariable int id){
         return userDao.getTransfer(userID, id);
@@ -91,8 +91,8 @@ public class AuthenticationController {
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(path = "/send", method = RequestMethod.POST)
-    //@PreAuthorize("isAuthenticated()")
+    @RequestMapping(path = "/transfer", method = RequestMethod.POST)
+    @PreAuthorize("isAuthenticated()")
     public int sendMoney(@Valid @RequestBody Transfer currentTransfer){
         return userDao.sendMoney(currentTransfer);
     }

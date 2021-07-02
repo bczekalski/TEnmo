@@ -158,11 +158,11 @@ public class JdbcUserDao implements UserDao {
         try {
             jdbcTemplate.update(sql, currentTransfer.getAmount().multiply(BigDecimal.valueOf(-1)), currentTransfer.getSenderId());
             jdbcTemplate.update(sql, currentTransfer.getAmount(), currentTransfer.getReceiverId());
+            return addTransfer(2, 2, currentTransfer.getSenderId(),
+                    currentTransfer.getReceiverId(), currentTransfer.getAmount());
         }catch(DataAccessException e){
             return 0;
         }
-        return addTransfer(2, 2, currentTransfer.getSenderId(),
-                currentTransfer.getReceiverId(), currentTransfer.getAmount());
     }
 
     private int addTransfer(int transferTypeId, int transferStatusId, int senderUserId, int receiverUserId, BigDecimal amount){

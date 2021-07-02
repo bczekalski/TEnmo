@@ -44,18 +44,18 @@ public class AuthenticationService {
 		return restTemplate.exchange(baseUrl + "balance/" + id, HttpMethod.GET, createAuthEntity(jwt), BigDecimal.class).getBody();
 	}
 
-	public List<String> transferHistory(String jwt, int id){
-    	return restTemplate.exchange(baseUrl + "history/" + id, HttpMethod.GET,
+	public List transferHistory(String jwt, int id){
+    	return restTemplate.exchange(baseUrl + "get/history/" + id, HttpMethod.GET,
 				createAuthEntity(jwt), List.class).getBody();
 	}
 
-	public Map<String, String> listAll(String jwt){
+	public Map listAll(String jwt){
     	return restTemplate.exchange(baseUrl + "list", HttpMethod.GET,
 				createAuthEntity(jwt), Map.class).getBody();
 	}
 
 	public String getTransfer(String jwt, int userId, int id){
-    	return restTemplate.exchange(baseUrl + "transfer/" + userId + "/" + id, HttpMethod.GET,
+    	return restTemplate.exchange(baseUrl + "get/transfer/" + userId + "/" + id, HttpMethod.GET,
 				createAuthEntity(jwt), String.class).getBody();
 	}
 
@@ -64,7 +64,7 @@ public class AuthenticationService {
 	}
 
 	public int sendMoney(Transfer currentTransfer, String jwt){
-    	return restTemplate.exchange(baseUrl + "send", HttpMethod.POST,
+    	return restTemplate.exchange(baseUrl + "transfer", HttpMethod.POST,
 				createAuthTransferEntity(currentTransfer, jwt), Integer.class).getBody();
 	}
 
@@ -85,7 +85,7 @@ public class AuthenticationService {
     	HttpHeaders headers = new HttpHeaders();
     	headers.setContentType(MediaType.APPLICATION_JSON);
     	headers.setBearerAuth(jwt);
-    	HttpEntity<Transfer> entity = new HttpEntity<>(currentTransfer);
+    	HttpEntity<Transfer> entity = new HttpEntity<>(currentTransfer, headers);
     	return entity;
 	}
 
