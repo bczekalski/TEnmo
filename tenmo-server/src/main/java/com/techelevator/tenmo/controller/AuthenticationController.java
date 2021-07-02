@@ -2,8 +2,9 @@ package com.techelevator.tenmo.controller;
 
 import javax.validation.Valid;
 
-import org.apache.coyote.Request;
+import com.techelevator.tenmo.model.Transfer;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller to authenticate users.
@@ -60,23 +62,39 @@ public class AuthenticationController {
     }
 
     @RequestMapping(path = "/balance/{id}", method = RequestMethod.GET)
+    @PreAuthorize("isAuthenticated()")
     public BigDecimal getBalance(@PathVariable int id){
         return userDao.getUserBalance(id);
     }
 
-    @RequestMapping(path = "/history/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/get/history/{id}", method = RequestMethod.GET)
+    @PreAuthorize("isAuthenticated()")
     public List<String> getHistory(@PathVariable int id){
         return userDao.getUserHistory(id);
     }
 
     @RequestMapping(path = "/list", method = RequestMethod.GET)
-    public List<User> listAll(){
-        return userDao.findAll();
+    @PreAuthorize("isAuthenticated()")
+    public Map<String, String> listAll(){
+        return userDao.listUsers();
     }
 
-    @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/get/transfer/{userID}/{id}", method = RequestMethod.GET)
+    @PreAuthorize("isAuthenticated()")
     public String getTransfer(@PathVariable int userID, @PathVariable int id){
         return userDao.getTransfer(userID, id);
+    }
+
+    @RequestMapping(path = "/valid/{id}", method = RequestMethod.GET)
+    public boolean isValidUser(@PathVariable int id){
+        return userDao.isValidUser(id);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(path = "/transfer", method = RequestMethod.POST)
+    @PreAuthorize("isAuthenticated()")
+    public int sendMoney(@Valid @RequestBody Transfer currentTransfer){
+        return userDao.sendMoney(currentTransfer);
     }
 
     /**

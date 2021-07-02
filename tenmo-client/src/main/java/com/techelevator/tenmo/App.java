@@ -1,13 +1,18 @@
 package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
+import io.cucumber.java.eo.Do;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class App {
@@ -72,11 +77,11 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewCurrentBalance() {
-		System.out.println("Your current account balance is: $" + authenticationService.balance(currentUser.getUser().getId()));
+		System.out.println("Your current account balance is: $" + authenticationService.balance(currentUser.getToken(), currentUser.getUser().getId()));
 	}
 
 	private void viewTransferHistory() {
-		List<String> history = authenticationService.transferHistory(currentUser.getUser().getId());
+		List<String> history = authenticationService.transferHistory(currentUser.getToken(), currentUser.getUser().getId());
 		System.out.println("-------------------------------------------");
 		System.out.println("Transfers");
 		System.out.println("ID          From/To                 Amount");
@@ -91,16 +96,18 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		String input = scanner.nextLine();
 		if (isInteger(input)){
 			int id = Integer.parseInt(input);
-			String transfer = authenticationService.getTransfer(currentUser.getUser().getId(), id);
-			if (transfer != null){
-				String[] s = transfer.split("\\|");
-				System.out.println("--------------------------------------------");
-				System.out.println("Transfer Details");
-				System.out.println("--------------------------------------------");
-				System.out.println("Id: " +s[0]+ "\nFrom: " + s[1] + "\nTo: " + s[2] +
-						"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
-			}else{
-				System.out.println("Error, the transfer ID you entered is not associated with a transfer.");
+			if (id != 0) {
+				String transfer = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id);
+				if (transfer != null) {
+					String[] s = transfer.split("\\|");
+					System.out.println("--------------------------------------------");
+					System.out.println("Transfer Details");
+					System.out.println("--------------------------------------------");
+					System.out.println("Id: " + s[0] + "\nFrom: " + s[1] + "\nTo: " + s[2] +
+							"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
+				} else {
+					System.out.println("Error, the transfer ID you entered is not associated with a transfer.");
+				}
 			}
 		}
 	}
@@ -123,14 +130,51 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-		/*System.out.println("-------------------------------------------");
-		System.out.println("Users");
-		System.out.println("ID \t Name");
 		System.out.println("-------------------------------------------");
-		List<User> users = authenticationService.listAll();
+		System.out.println("Users");
+		System.out.println("ID \t\t Name");
+		System.out.println("-------------------------------------------");
+		Map<String, String> userMap = authenticationService.listAll(currentUser.getToken());
+		List<User> users = new ArrayList<>();
+		Transfer currentTransfer = new Transfer();
+		for (String key : userMap.keySet()){
+			User user = new User();
+			user.setId(Integer.parseInt(key));
+			user.setUsername(userMap.get(key));
+			users.add(user);
+		}
 		for (User u : users){
-			System.out.println(u.getId() + " \t " + u.getUsername());
-		}*/
+			System.out.println(u.getId() + "\t\t" + u.getUsername());
+		}
+		currentTransfer.setSenderId(currentUser.getUser().getId());
+		System.out.println("-------------------------------------------");
+		System.out.println("Enter ID of user you are sending to (0 to cancel): ");
+		Scanner scanner = new Scanner(System.in);
+		String input = scanner.nextLine();
+		if (isInteger(input)){
+			int receiverId = Integer.parseInt(input);
+			if(authenticationService.isValidUser(receiverId)){
+				currentTransfer.setReceiverId(receiverId);
+				System.out.println("Enter amount: ");
+				input = scanner.nextLine();
+				if(isDouble(input)){
+					currentTransfer.setAmount(BigDecimal.valueOf(Double.parseDouble(input)));
+					int transferID = authenticationService.sendMoney(currentTransfer, currentUser.getToken());
+					String transfer = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), transferID);
+					if(transfer != null) {
+						String[] s = transfer.split("\\|");
+						System.out.println("--------------------------------------------");
+						System.out.println("Transfer Details");
+						System.out.println("--------------------------------------------");
+						System.out.println("Id: " + s[0] + "\nFrom: " + s[1] + "\nTo: " + s[2] +
+								"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
+					}else{
+						System.out.println("Somehow the newly created transfer id got lost along the way " +
+								"or is zero, so transfer is null");
+					}
+				}
+			}
+		}
 	}
 
 	private void requestBucks() {
@@ -213,7 +257,20 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		try {
 			Integer.parseInt(s);
 		} catch (NumberFormatException e){
-			System.out.println("Error, you did not enter an integer.");
+			System.out.println("Error, you did not enter a number.");
+			return false;
+		}catch (NullPointerException e){
+			System.out.println("Error, you did not enter anything.");
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isDouble(String s){
+		try {
+			Double.parseDouble(s);
+		} catch (NumberFormatException e){
+			System.out.println("Error, you did not enter a number.");
 			return false;
 		}catch (NullPointerException e){
 			System.out.println("Error, you did not enter anything.");
