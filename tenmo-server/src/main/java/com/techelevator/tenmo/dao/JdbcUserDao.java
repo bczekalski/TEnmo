@@ -171,8 +171,8 @@ public class JdbcUserDao implements UserDao {
         int receiverAccountId = getAccountIdByUserId(t.getReceiverId());
 
         String sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) " +
-        "VALUES (?, ?, ?, ?, ?);";
-        return jdbcTemplate.update(sql, Integer.class, t.getTransferTypeId(), t.getTransferStatusId(),
+        "VALUES (?, ?, ?, ?, ?) RETURNING transfer_id;";
+        return jdbcTemplate.queryForObject(sql, Integer.class, t.getTransferTypeId(), t.getTransferStatusId(),
                 senderAccountId, receiverAccountId, t.getAmount());
     }
 
