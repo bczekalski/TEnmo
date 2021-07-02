@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.security.UserNotActivatedException;
 import org.springframework.dao.DataAccessException;
@@ -46,12 +47,12 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
-    public Map<Integer, String> listUsers(){
-        Map<Integer, String> users = new HashMap<>();
+    public Map<String, String> listUsers(){
+        Map<String, String> users = new HashMap<>();
         String sql = "SELECT user_id, username FROM users;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
         while(rowSet.next()){
-            users.put(rowSet.getInt("user_id"), rowSet.getString("username"));
+            users.put(rowSet.getString("user_id"), rowSet.getString("username"));
         }
         return users;
     }
@@ -152,15 +153,16 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
-    public int sendMoney(int receiverId, int senderId, BigDecimal amount){
+    public int sendMoney(Transfer currentTransfer){
         String sql = "UPDATE account SET balance = ? WHERE user_id = ?;";
         try {
-            jdbcTemplate.update(sql, amount.multiply(BigDecimal.valueOf(-1)), senderId);
-            jdbcTemplate.update(sql, amount, receiverId);
+            jdbcTemplate.update(sql, currentTransfer.getAmount().multiply(BigDecimal.valueOf(-1)), currentTransfer.getSenderId());
+            jdbcTemplate.update(sql, currentTransfer.getAmount(), currentTransfer.getReceiverId());
         }catch(DataAccessException e){
             return 0;
         }
-        return addTransfer(2, 2, senderId, receiverId, amount);
+        return addTransfer(2, 2, currentTransfer.getSenderId(),
+                currentTransfer.getReceiverId(), currentTransfer.getAmount());
     }
 
     private int addTransfer(int transferTypeId, int transferStatusId, int senderUserId, int receiverUserId, BigDecimal amount){

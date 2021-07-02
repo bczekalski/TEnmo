@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,33 +40,32 @@ public class AuthenticationService {
         sendRegistrationRequest(entity);
     }
 
-    public BigDecimal balance(int id){
-		return restTemplate.getForObject(baseUrl + "balance/" + id, BigDecimal.class);
+    public BigDecimal balance(String jwt, int id){
+		return restTemplate.exchange(baseUrl + "balance/" + id, HttpMethod.GET, createAuthEntity(jwt), BigDecimal.class).getBody();
 	}
 
-	public List<String> transferHistory(int id){
-    	return restTemplate.getForObject(baseUrl + "history/" + id, List.class);
+	public List<String> transferHistory(String jwt, int id){
+    	return restTemplate.exchange(baseUrl + "history/" + id, HttpMethod.GET,
+				createAuthEntity(jwt), List.class).getBody();
 	}
 
-	public Map listAll(){
-    	return restTemplate.getForObject(baseUrl + "list", Map.class);
+	public Map<String, String> listAll(String jwt){
+    	return restTemplate.exchange(baseUrl + "list", HttpMethod.GET,
+				createAuthEntity(jwt), Map.class).getBody();
 	}
 
-	public String getTransfer(int userId, int id){
-    	return restTemplate.getForObject(baseUrl + "transfer/" + userId + "/" + id, String.class);
+	public String getTransfer(String jwt, int userId, int id){
+    	return restTemplate.exchange(baseUrl + "transfer/" + userId + "/" + id, HttpMethod.GET,
+				createAuthEntity(jwt), String.class).getBody();
 	}
 
 	public boolean isValidUser(int id){
     	return restTemplate.getForObject(baseUrl + "valid/" + id, Boolean.class);
 	}
 
-	public int sendMoney(int senderId, int receiverId, BigDecimal amount, UserCredentials credentials){
-    	HttpEntity<UserCredentials> entity = createRequestEntity(credentials);
-    	try{
-    		return restTemplate.postForObject(baseUrl + "send/"+receiverId+"/"+senderId+"/"+amount, entity, Integer.class);
-		}catch(NullPointerException e) {
-			return 0;
-		}
+	public int sendMoney(Transfer currentTransfer, String jwt){
+    	return restTemplate.exchange(baseUrl + "send", HttpMethod.POST,
+				createAuthTransferEntity(currentTransfer, jwt), Integer.class).getBody();
 	}
 
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {
@@ -74,6 +74,20 @@ public class AuthenticationService {
     	HttpEntity<UserCredentials> entity = new HttpEntity<>(credentials, headers);
     	return entity;
     }
+
+    public HttpEntity createAuthEntity(String jwt){
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(jwt);
+		return new HttpEntity(headers);
+	}
+
+	public HttpEntity<Transfer> createAuthTransferEntity(Transfer currentTransfer, String jwt){
+    	HttpHeaders headers = new HttpHeaders();
+    	headers.setContentType(MediaType.APPLICATION_JSON);
+    	headers.setBearerAuth(jwt);
+    	HttpEntity<Transfer> entity = new HttpEntity<>(currentTransfer);
+    	return entity;
+	}
 
 	private AuthenticatedUser sendLoginRequest(HttpEntity<UserCredentials> entity) throws AuthenticationServiceException {
 		try {	

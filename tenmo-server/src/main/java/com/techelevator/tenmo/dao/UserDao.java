@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ public interface UserDao {
 
     List<User> findAll();
 
-    Map<Integer, String> listUsers();
+    Map<String, String> listUsers();
 
     User findByUsername(String username);
 
@@ -26,5 +27,5 @@ public interface UserDao {
 
     boolean isValidUser(int id);
 
-    int sendMoney(int senderId, int receiverId, BigDecimal amount);
+    int sendMoney(Transfer currentTransfer);
 }

@@ -2,7 +2,9 @@ package com.techelevator.tenmo.controller;
 
 import javax.validation.Valid;
 
+import com.techelevator.tenmo.model.Transfer;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -60,21 +62,25 @@ public class AuthenticationController {
     }
 
     @RequestMapping(path = "/balance/{id}", method = RequestMethod.GET)
+    @PreAuthorize("isAuthenticated()")
     public BigDecimal getBalance(@PathVariable int id){
         return userDao.getUserBalance(id);
     }
 
     @RequestMapping(path = "/history/{id}", method = RequestMethod.GET)
+    @PreAuthorize("isAuthenticated()")
     public List<String> getHistory(@PathVariable int id){
         return userDao.getUserHistory(id);
     }
 
     @RequestMapping(path = "/list", method = RequestMethod.GET)
-    public Map<Integer, String> listAll(){
+    @PreAuthorize("isAuthenticated()")
+    public Map<String, String> listAll(){
         return userDao.listUsers();
     }
 
     @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
+    @PreAuthorize("isAuthenticated()")
     public String getTransfer(@PathVariable int userID, @PathVariable int id){
         return userDao.getTransfer(userID, id);
     }
@@ -85,9 +91,10 @@ public class AuthenticationController {
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(path = "/send/{receiverId}/{senderId}/{amount}", method = RequestMethod.POST)
-    public int sendMoney(@PathVariable int receiverId, @PathVariable int senderId, @PathVariable BigDecimal amount){
-        return userDao.sendMoney(senderId, receiverId, amount);
+    @RequestMapping(path = "/send", method = RequestMethod.POST)
+    //@PreAuthorize("isAuthenticated()")
+    public int sendMoney(@Valid @RequestBody Transfer currentTransfer){
+        return userDao.sendMoney(currentTransfer);
     }
 
     /**
