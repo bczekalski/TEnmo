@@ -27,5 +27,7 @@ public interface UserDao {
 
     boolean isValidUser(int id);
 
-    int sendMoney(Transfer currentTransfer);
+    boolean sendMoney(Transfer ct);
+
+    Integer addTransfer(Transfer t);
 }

@@ -105,10 +105,9 @@ public class JdbcUserDao implements UserDao {
     public BigDecimal getUserBalance(int id) {
         String sql = "SELECT balance FROM accounts WHERE user_id = ?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        if (rowSet.next()){
-            return rowSet.getBigDecimal("balance");
-        }
-        throw new UserNotActivatedException("User " + id + " is not activated");
+        rowSet.next();
+        return rowSet.getBigDecimal("balance");
+
     }
 
     @Override
@@ -153,33 +152,35 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
-    public int sendMoney(Transfer currentTransfer){
-        String sql = "UPDATE account SET balance = ? WHERE user_id = ?;";
+    public boolean sendMoney(Transfer ct){
+        String sql = "UPDATE accounts SET balance = ? WHERE user_id = ?;";
         try {
-            jdbcTemplate.update(sql, currentTransfer.getAmount().multiply(BigDecimal.valueOf(-1)), currentTransfer.getSenderId());
-            jdbcTemplate.update(sql, currentTransfer.getAmount(), currentTransfer.getReceiverId());
-            return addTransfer(2, 2, currentTransfer.getSenderId(),
-                    currentTransfer.getReceiverId(), currentTransfer.getAmount());
+            jdbcTemplate.update(sql, getUserBalance(ct.getSenderId()).subtract(ct.getAmount())
+                  , ct.getSenderId());
+            jdbcTemplate.update(sql, getUserBalance(ct.getReceiverId()).add(ct.getAmount())
+                    , ct.getReceiverId());
         }catch(DataAccessException e){
-            return 0;
+            return false;
         }
+        return true;
     }
 
-    private int addTransfer(int transferTypeId, int transferStatusId, int senderUserId, int receiverUserId, BigDecimal amount){
+    @Override
+    public Integer addTransfer(Transfer t){
+        int senderAccountId = getAccountIdByUserId(t.getSenderId());
+        int receiverAccountId = getAccountIdByUserId(t.getReceiverId());
+
+        String sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) " +
+        "VALUES (?, ?, ?, ?, ?);";
+        return jdbcTemplate.update(sql, Integer.class, t.getTransferTypeId(), t.getTransferStatusId(),
+                senderAccountId, receiverAccountId, t.getAmount());
+    }
+
+    private int getAccountIdByUserId(int id){
         String sql = "SELECT account_id FROM accounts WHERE user_id = ?;";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, senderUserId);
-        int senderAccountId = rowSet.getInt("account_id");
-
-        rowSet = jdbcTemplate.queryForRowSet(sql, receiverUserId);
-        int receiverAccountId = rowSet.getInt("account_id");
-
-        sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, " +
-                "account_from, account_to, amount " +
-                "VALUES (?, ?, ?, ?, ?);";
-        int newId = jdbcTemplate.queryForObject(sql, Integer.class, transferTypeId, transferStatusId,
-                senderAccountId, receiverAccountId, amount);
-        return newId;
-
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
+        rowSet.next();
+        return rowSet.getInt("account_id");
     }
 
     private User getUserByAccountID(int accId){
