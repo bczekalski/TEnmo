@@ -74,6 +74,10 @@ public class AuthenticationController {
         return userDao.findAll();
     }
 
+    @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
+    public String getTransfer(@PathVariable int userID, @PathVariable int id){
+        return userDao.getTransfer(userID, id);
+    }
 
     /**
      * Object to return as body in JWT Authentication.
