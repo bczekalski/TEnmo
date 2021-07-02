@@ -45,7 +45,7 @@ public class AuthenticationService {
 	}
 
 	public List transferHistory(String jwt, int id){
-    	return restTemplate.exchange(baseUrl + "get/history/" + id, HttpMethod.GET,
+    	return restTemplate.exchange(baseUrl + "history/" + id, HttpMethod.GET,
 				createAuthEntity(jwt), List.class).getBody();
 	}
 
@@ -55,7 +55,7 @@ public class AuthenticationService {
 	}
 
 	public String getTransfer(String jwt, int userId, int id){
-    	return restTemplate.exchange(baseUrl + "get/transfer/" + userId + "/" + id, HttpMethod.GET,
+    	return restTemplate.exchange(baseUrl + "transfer/" + userId + "/" + id, HttpMethod.GET,
 				createAuthEntity(jwt), String.class).getBody();
 	}
 
@@ -63,9 +63,14 @@ public class AuthenticationService {
     	return restTemplate.getForObject(baseUrl + "valid/" + id, Boolean.class);
 	}
 
-	public int sendMoney(Transfer currentTransfer, String jwt){
-    	return restTemplate.exchange(baseUrl + "transfer", HttpMethod.POST,
-				createAuthTransferEntity(currentTransfer, jwt), Integer.class).getBody();
+	public boolean sendMoney(Transfer currentTransfer, String jwt){
+    	return restTemplate.exchange(baseUrl + "send", HttpMethod.POST,
+				createAuthTransferEntity(currentTransfer, jwt), Boolean.class).getBody();
+	}
+
+	public Integer addTransfer(Transfer transfer, String jwt){
+    	return restTemplate.exchange(baseUrl + "transaction", HttpMethod.POST,
+				createAuthTransferEntity(transfer, jwt), Integer.class).getBody();
 	}
 
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {

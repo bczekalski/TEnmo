@@ -146,18 +146,22 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				input = scanner.nextLine();
 				if(isDouble(input)){
 					currentTransfer.setAmount(BigDecimal.valueOf(Double.parseDouble(input)));
-					int transferID = authenticationService.sendMoney(currentTransfer, currentUser.getToken());
-					String transfer = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), transferID);
-					if(transfer != null) {
-						String[] s = transfer.split("\\|");
-						System.out.println("--------------------------------------------");
-						System.out.println("Transfer Details");
-						System.out.println("--------------------------------------------");
-						System.out.println("Id: " + s[0] + "\nFrom: " + s[1] + "\nTo: " + s[2] +
-								"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
-					}else{
-						System.out.println("Somehow the newly created transfer id got lost along the way " +
-								"or is zero, so transfer is null");
+					if (authenticationService.sendMoney(currentTransfer, currentUser.getToken())) {
+						currentTransfer.setTransferStatusId(2);
+						currentTransfer.setTransferTypeId(2);
+						Integer newId = authenticationService.addTransfer(currentTransfer, currentUser.getToken());
+						String transfer = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), newId);
+						if (transfer != null) {
+							String[] s = transfer.split("\\|");
+							System.out.println("--------------------------------------------");
+							System.out.println("Transfer Details");
+							System.out.println("--------------------------------------------");
+							System.out.println("Id: " + s[0] + "\nFrom: " + s[1] + "\nTo: " + s[2] +
+									"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
+						} else {
+							System.out.println("Somehow the newly created transfer id got lost along the way " +
+									"or is zero, so transfer is null");
+						}
 					}
 				}
 			}
