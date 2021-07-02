@@ -11,6 +11,8 @@ public class Transfer {
     private int receiverId;
     @Positive
     private BigDecimal amount;
+    private int transferTypeId;
+    private int transferStatusId;
 
     public Transfer(){}
 
@@ -19,7 +21,6 @@ public class Transfer {
         this.receiverId = receiverId;
         this.amount = amount;
     }
-
 
     public int getSenderId() {
         return senderId;
@@ -43,5 +44,21 @@ public class Transfer {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public int getTransferStatusId() {
+        return transferStatusId;
+    }
+
+    public void setTransferStatusId(int transferStatusId) {
+        this.transferStatusId = transferStatusId;
+    }
+
+    public int getTransferTypeId() {
+        return transferTypeId;
+    }
+
+    public void setTransferTypeId(int transferTypeId) {
+        this.transferTypeId = transferTypeId;
     }
 }

@@ -67,7 +67,7 @@ public class AuthenticationController {
         return userDao.getUserBalance(id);
     }
 
-    @RequestMapping(path = "/get/history/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/history/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
     public List<String> getHistory(@PathVariable int id){
         return userDao.getUserHistory(id);
@@ -79,7 +79,7 @@ public class AuthenticationController {
         return userDao.listUsers();
     }
 
-    @RequestMapping(path = "/get/transfer/{userID}/{id}", method = RequestMethod.GET)
+    @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
     public String getTransfer(@PathVariable int userID, @PathVariable int id){
         return userDao.getTransfer(userID, id);
@@ -90,11 +90,17 @@ public class AuthenticationController {
         return userDao.isValidUser(id);
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(path = "/transfer", method = RequestMethod.POST)
+    @RequestMapping(path = "/send", method = RequestMethod.POST)
     @PreAuthorize("isAuthenticated()")
-    public int sendMoney(@Valid @RequestBody Transfer currentTransfer){
+    public boolean sendMoney(@Valid @RequestBody Transfer currentTransfer){
         return userDao.sendMoney(currentTransfer);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @RequestMapping(path = "/transaction", method = RequestMethod.POST)
+    @PreAuthorize("isAuthenticated()")
+    public Integer addTransfer(@Valid @RequestBody Transfer transfer){
+        return userDao.addTransfer(transfer);
     }
 
     /**
