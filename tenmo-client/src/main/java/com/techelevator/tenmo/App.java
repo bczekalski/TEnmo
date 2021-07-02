@@ -113,19 +113,6 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewPendingRequests() {
-    	
-
-
-    	System.out.println("-------------------------------------------");
-    	System.out.println("Pending Transfers");
-		System.out.println("ID          To                     Amount");
-    	System.out.println("-------------------------------------------");
-
-
-
-    	System.out.println("-------------------------------------------");
-		System.out.println("Please enter transfer ID to approve/reject (0 to cancel): ");
-
 
 	}
 
