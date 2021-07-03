@@ -1,5 +1,7 @@
 package com.techelevator.tenmo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
@@ -7,7 +9,6 @@ import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
-import io.cucumber.java.eo.Do;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -34,8 +35,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
     private AuthenticatedUser currentUser;
     private ConsoleService console;
     private AuthenticationService authenticationService;
+    private ObjectMapper mapper;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws JsonProcessingException {
     	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL));
     	app.run();
     }
@@ -43,9 +45,10 @@ private static final String API_BASE_URL = "http://localhost:8080/";
     public App(ConsoleService console, AuthenticationService authenticationService) {
 		this.console = console;
 		this.authenticationService = authenticationService;
+		this.mapper = new ObjectMapper();
 	}
 
-	public void run() {
+	public void run() throws JsonProcessingException {
 		System.out.println("*********************");
 		System.out.println("* Welcome to TEnmo! *");
 		System.out.println("*********************");
@@ -54,7 +57,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		mainMenu();
 	}
 
-	private void mainMenu() {
+	private void mainMenu() throws JsonProcessingException {
 		while(true) {
 			String choice = (String)console.getChoiceFromOptions(MAIN_MENU_OPTIONS);
 			if(MAIN_MENU_OPTION_VIEW_BALANCE.equals(choice)) {
@@ -77,27 +80,39 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewCurrentBalance() {
-		System.out.println("Your current account balance is: $" + authenticationService.balance(currentUser.getToken(), currentUser.getUser().getId()));
+		System.out.println("Your current account balance is: $" + authenticationService.balance(currentUser.getToken(),
+				authenticationService.getAccIdByUserId(currentUser.getUser().getId())));
 	}
 
-	private void viewTransferHistory() {
-		List<String> history = authenticationService.transferHistory(currentUser.getToken(), currentUser.getUser().getId());
+	private void viewTransferHistory() throws JsonProcessingException {
+		List<String> jsonHistory = authenticationService.transferHistory(currentUser.getToken(), currentUser.getUser().getId());
+		List<Transfer> history = new ArrayList<>();
+		for (String s : jsonHistory){
+			Transfer temp = mapper.readValue(s, Transfer.class);
+			history.add(temp);
+		}
 		System.out.println("-------------------------------------------");
 		System.out.println("Transfers");
 		System.out.println("ID          From/To                 Amount");
 		System.out.println("-------------------------------------------");
-		for (String h : history){
-			String[] s = h.split("\\|");
-			System.out.println(s[0] + " \t " + s[1] + s[2] + " \t\t " + s[3]);
+		for (Transfer t : history){
+			if(t.isTransferSent()) {
+				System.out.println(t.getTransferId() + " \t\t " + "To: " +
+						authenticationService.getUsernameByAccId(t.getReceiverId()) + " \t\t\t " + t.getAmount());
+			}else{
+				System.out.println(t.getTransferId() + " \t\t " + "From: " +
+						authenticationService.getUsernameByAccId(t.getSenderId()) + " \t\t\t " + t.getAmount());
+			} //need to get username out of the given account id through the transfer
 		}
 		System.out.println("-------------------------------------------");
 		System.out.println("Please enter transfer ID to view details (0 to cancel): ");
 		Scanner scanner = new Scanner(System.in);
 		String input = scanner.nextLine();
-		if (isInteger(input)){
-			int id = Integer.parseInt(input);
+		if (isLong(input)){
+			long id = Long.parseLong(input);
 			if (id != 0) {
-				printTransfer(authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id));
+				Transfer t = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id);
+				printTransfer(t);
 			}
 		}
 	}
@@ -107,42 +122,35 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		
 	}
 
-	private void sendBucks() {
+	private void sendBucks() throws JsonProcessingException {
 		System.out.println("-------------------------------------------");
 		System.out.println("Users");
 		System.out.println("ID \t\t Name");
 		System.out.println("-------------------------------------------");
-		Map<String, String> userMap = authenticationService.listAll(currentUser.getToken());
-		List<User> users = new ArrayList<>();
-		Transfer currentTransfer = new Transfer();
-		for (String key : userMap.keySet()){
-			User user = new User();
-			user.setId(Integer.parseInt(key));
-			user.setUsername(userMap.get(key));
-			users.add(user);
+		Map<String, String> users = authenticationService.listAll(currentUser.getToken());
+		for (String key : users.keySet()) {
+			System.out.println(key + "\t\t" + users.get(key));
 		}
-		for (User u : users){
-			System.out.println(u.getId() + "\t\t" + u.getUsername());
-		}
-		currentTransfer.setSenderId(currentUser.getUser().getId());
 		System.out.println("-------------------------------------------");
 		System.out.println("Enter ID of user you are sending to (0 to cancel): ");
 		Scanner scanner = new Scanner(System.in);
 		String input = scanner.nextLine();
-		if (isInteger(input)){
-			int receiverId = Integer.parseInt(input);
+		if (isLong(input)){
+			long receiverId = Integer.parseInt(input);
 			if(authenticationService.isValidUser(receiverId)){
-				currentTransfer.setReceiverId(receiverId);
 				System.out.println("Enter amount: ");
 				input = scanner.nextLine();
 				if(isDouble(input)){
-					currentTransfer.setAmount(BigDecimal.valueOf(Double.parseDouble(input)));
+					Transfer currentTransfer = new Transfer(authenticationService.getAccIdByUserId(currentUser.getUser().getId()),
+							authenticationService.getAccIdByUserId(receiverId), BigDecimal.valueOf(Double.parseDouble(input)));
 					if (authenticationService.sendMoney(currentTransfer, currentUser.getToken())) {
 						currentTransfer.setTransferStatusId(2);
 						currentTransfer.setTransferTypeId(2);
-						Transfer transfer = authenticationService.addTransfer(currentTransfer, currentUser.getToken());
-						printTransfer(transfer);
-
+						Long newId = authenticationService.addTransfer(currentTransfer, currentUser.getToken());
+						currentTransfer.setTransferId(newId);
+						currentTransfer.setTransferStatusDesc("Approved");
+						currentTransfer.setTransferTypeDesc("Send");
+						printTransfer(currentTransfer);
 					}
 				}
 			}
@@ -214,9 +222,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		return new UserCredentials(username, password);
 	}
 
-	private boolean isInteger(String s){
+	private boolean isLong(String s){
 		try {
-			Integer.parseInt(s);
+			Long.parseLong(s);
 		} catch (NumberFormatException e){
 			System.out.println("Error, you did not enter a number.");
 			return false;
@@ -246,8 +254,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			System.out.println("Transfer Details");
 			System.out.println("--------------------------------------------");
 			System.out.println("Id: " + t.getTransferId());
-			System.out.println("From: " + authenticationService.getUsernameById(t.getSenderId()));
-			System.out.println("To: " + authenticationService.getUsernameById(t.getReceiverId()));
+			System.out.println("From: " + authenticationService.getUsernameByAccId(t.getSenderId()));
+			System.out.println("To: " + authenticationService.getUsernameByAccId(t.getReceiverId()));
 			System.out.println("Type: " + t.getTransferTypeDesc());
 			System.out.println("Status: " + t.getTransferStatusDesc());
 			System.out.println("Amount: $" + t.getAmount());

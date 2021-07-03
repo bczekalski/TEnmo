@@ -2,6 +2,7 @@ package com.techelevator.tenmo.controller;
 
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.techelevator.tenmo.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,18 +69,33 @@ public class AuthenticationController {
 
     @RequestMapping(path = "/balance/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
-    public BigDecimal getBalance(@PathVariable int id){
+    public BigDecimal getBalance(@PathVariable long id){
         return accountDao.getUserBalance(id);
     }
 
     @RequestMapping(path = "/username/{id}", method = RequestMethod.GET)
-    public String getUsernameById(@PathVariable int id){
+    public String getUsernameById(@PathVariable long id){
         return userDao.getUsernameById(id);
+    }
+
+    @RequestMapping(path = "/account/username/{id}", method = RequestMethod.GET)
+    public String getUsernameByAccId(@PathVariable long id){
+        return userDao.getUsernameByAccId(id);
+    }
+
+    @RequestMapping(path = "account/user/{id}", method = RequestMethod.GET)
+    public long getUserIdByAccId(@PathVariable long id){
+        return userDao.getUserIdByAccountId(id);
+    }
+
+    @RequestMapping(path = "user/account/{id}", method = RequestMethod.GET)
+    public long getAccIdByUserId(@PathVariable long id){
+        return accountDao.getAccountIdByUserId(id);
     }
 
     @RequestMapping(path = "/history/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
-    public List<String> getHistory(@PathVariable int id){
+    public List<String> getHistory(@PathVariable long id) throws JsonProcessingException {
         return transferDao.getUserHistory(id);
     }
 
@@ -91,12 +107,12 @@ public class AuthenticationController {
 
     @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
     @PreAuthorize("isAuthenticated()")
-    public Transfer getTransfer(@PathVariable int userID, @PathVariable int id){
+    public Transfer getTransfer(@PathVariable long userID, @PathVariable long id) {
         return transferDao.getTransfer(userID, id);
     }
 
     @RequestMapping(path = "/valid/{id}", method = RequestMethod.GET)
-    public boolean isValidUser(@PathVariable int id){
+    public boolean isValidUser(@PathVariable long id){
         return userDao.isValidUser(id);
     }
 
@@ -109,7 +125,7 @@ public class AuthenticationController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(path = "/transaction", method = RequestMethod.POST)
     @PreAuthorize("isAuthenticated()")
-    public Transfer addTransfer(@Valid @RequestBody Transfer transfer){
+    public long addTransfer(@Valid @RequestBody Transfer transfer) {
         return transferDao.addTransfer(transfer);
     }
 

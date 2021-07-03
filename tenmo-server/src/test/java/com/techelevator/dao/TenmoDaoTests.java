@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-public class JdbcDatabaseTests {
+public class TenmoDaoTests {
     public static SingleConnectionDataSource dataSource;
 
     /* Before any tests are run, this method initializes the datasource for testing. */

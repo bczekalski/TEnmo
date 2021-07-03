@@ -1,5 +1,7 @@
 package com.techelevator.tenmo.dao;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.security.UserNotActivatedException;
@@ -10,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -18,15 +21,17 @@ public class JdbcUserDao implements UserDao {
 
     private static final BigDecimal STARTING_BALANCE = new BigDecimal("1000.00");
     private JdbcTemplate jdbcTemplate;
+    private ObjectMapper mapper;
 
-    public JdbcUserDao(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public JdbcUserDao(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.mapper = new ObjectMapper();
     }
 
     @Override
-    public int findIdByUsername(String username) {
+    public long findIdByUsername(String username) {
         String sql = "SELECT user_id FROM users WHERE username ILIKE ?;";
-        Integer id = jdbcTemplate.queryForObject(sql, Integer.class, username);
+        Long id = jdbcTemplate.queryForObject(sql, Long.class, username);
         if (id != null) {
             return id;
         } else {
@@ -35,21 +40,9 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
-    public String getUsernameById(int id){
+    public String getUsernameById(long id){
         String sql = "SELECT username FROM users WHERE user_id = ?;";
         return jdbcTemplate.queryForObject(sql, String.class, id);
-    }
-
-    @Override
-    public List<User> findAll() {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT user_id, username, password_hash FROM users;";
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql);
-        while(results.next()) {
-            User user = mapRowToUser(results);
-            users.add(user);
-        }
-        return users;
     }
 
     @Override
@@ -64,7 +57,7 @@ public class JdbcUserDao implements UserDao {
     }
 
     @Override
-    public boolean isValidUser(int id){
+    public boolean isValidUser(long id){
         String sql = "SELECT user_id FROM users WHERE user_id = ?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
         if(rowSet.next()){
@@ -107,7 +100,8 @@ public class JdbcUserDao implements UserDao {
         return true;
     }
 
-    public User getUserByAccountId(int accId){
+    @Override
+    public User getUserByAccountId(long accId){
         String sql = "SELECT u.user_id, username, password_hash " +
                 "FROM users u " +
                 "JOIN accounts a ON a.user_id = u.user_id " +
@@ -117,6 +111,28 @@ public class JdbcUserDao implements UserDao {
             return mapRowToUser(rowSet);
         }
         return null;
+    }
+
+    @Override
+    public long getUserIdByAccountId(long accId){
+        String sql = "SELECT user_id FROM accounts WHERE account_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accId);
+        if (rowSet.next()){
+            return rowSet.getLong("user_id");
+        }
+        return 0L;
+    }
+
+    @Override
+    public String getUsernameByAccId(long accId){
+        String sql = "SELECT u.username FROM users u " +
+                "JOIN accounts a ON a.user_id = u.user_id " +
+                "WHERE a.account_id = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accId);
+        if (rowSet.next()){
+            return rowSet.getString("username");
+        }
+        throw new UsernameNotFoundException("User for account id" + accId + " does not exist");
     }
 
     private User mapRowToUser(SqlRowSet rs) {
