@@ -31,7 +31,13 @@ public class JdbcUserDao implements UserDao {
             return id;
         } else {
             return -1;
+        }
     }
+
+    @Override
+    public String getUsernameById(int id){
+        String sql = "SELECT username FROM users WHERE user_id = ?;";
+        return jdbcTemplate.queryForObject(sql, String.class, id);
     }
 
     @Override
@@ -101,89 +107,7 @@ public class JdbcUserDao implements UserDao {
         return true;
     }
 
-    @Override
-    public BigDecimal getUserBalance(int id) {
-        String sql = "SELECT balance FROM accounts WHERE user_id = ?;";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        rowSet.next();
-        return rowSet.getBigDecimal("balance");
-
-    }
-
-    @Override
-    public List<String> getUserHistory(int id){
-        List<String> history = new ArrayList<>();
-        String sql = "SELECT t.transfer_id, t.account_to, t.amount " +
-                "FROM transfers t " +
-                "JOIN accounts a ON t.account_from = a.account_id " +
-                "WHERE a.user_id = ?;";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        while(rowSet.next()){
-            history.add(rowSet.getInt("transfer_id") + "|To: |" +
-                    getUserByAccountID(rowSet.getInt("account_to")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
-        }
-
-        sql = "SELECT t.transfer_id, t.account_from, t.amount " +
-                "FROM transfers t " +
-                "JOIN accounts a ON t.account_to = a.account_id " +
-                "WHERE a.user_id = ?;";
-        rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        while(rowSet.next()){
-            history.add(rowSet.getInt("transfer_id") + "|From: |" +
-                    getUserByAccountID(rowSet.getInt("account_from")).getUsername() + "| $" + rowSet.getBigDecimal("amount"));
-        }
-        return history;
-    }
-    @Override
-    public String getTransfer(int userId, int id){
-        String sql = "SELECT transfer_id, t.account_from, t.account_to, " +
-                "ts.transfer_status_desc, tt.transfer_type_desc, t.amount " +
-                "FROM transfers t " +
-                "JOIN transfer_statuses ts ON ts.transfer_status_id = t.transfer_status_id " +
-                "JOIN transfer_types tt ON tt.transfer_type_id = t.transfer_type_id " +
-                "JOIN accounts a ON a.account_id = t.account_to OR a.account_id = t.account_from " +
-                "JOIN users u ON u.user_id = a.user_id " +
-                "WHERE transfer_id = ? AND u.user_id = ?;";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id, userId);
-        if (rowSet.next()){
-            return mapTransferToString(rowSet);
-        }
-        return null;
-    }
-
-    @Override
-    public boolean sendMoney(Transfer ct){
-        String sql = "UPDATE accounts SET balance = ? WHERE user_id = ?;";
-        try {
-            jdbcTemplate.update(sql, getUserBalance(ct.getSenderId()).subtract(ct.getAmount())
-                  , ct.getSenderId());
-            jdbcTemplate.update(sql, getUserBalance(ct.getReceiverId()).add(ct.getAmount())
-                    , ct.getReceiverId());
-        }catch(DataAccessException e){
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public Integer addTransfer(Transfer t){
-        int senderAccountId = getAccountIdByUserId(t.getSenderId());
-        int receiverAccountId = getAccountIdByUserId(t.getReceiverId());
-
-        String sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) " +
-        "VALUES (?, ?, ?, ?, ?) RETURNING transfer_id;";
-        return jdbcTemplate.queryForObject(sql, Integer.class, t.getTransferTypeId(), t.getTransferStatusId(),
-                senderAccountId, receiverAccountId, t.getAmount());
-    }
-
-    private int getAccountIdByUserId(int id){
-        String sql = "SELECT account_id FROM accounts WHERE user_id = ?;";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        rowSet.next();
-        return rowSet.getInt("account_id");
-    }
-
-    private User getUserByAccountID(int accId){
+    public User getUserByAccountId(int accId){
         String sql = "SELECT u.user_id, username, password_hash " +
                 "FROM users u " +
                 "JOIN accounts a ON a.user_id = u.user_id " +
@@ -203,12 +127,5 @@ public class JdbcUserDao implements UserDao {
         user.setActivated(true);
         user.setAuthorities("USER");
         return user;
-    }
-
-    private String mapTransferToString(SqlRowSet r){
-        return r.getInt("transfer_id") + "|" + getUserByAccountID(r.getInt("account_from")).getUsername() + "|" +
-                getUserByAccountID(r.getInt("account_to")).getUsername() + "|" +
-                r.getString("transfer_type_desc") + "|" +
-                r.getString("transfer_status_desc") + "|" + r.getBigDecimal("amount");
     }
 }

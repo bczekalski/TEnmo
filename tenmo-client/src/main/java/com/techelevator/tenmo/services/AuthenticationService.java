@@ -54,9 +54,13 @@ public class AuthenticationService {
 				createAuthEntity(jwt), Map.class).getBody();
 	}
 
-	public String getTransfer(String jwt, int userId, int id){
+	public Transfer getTransfer(String jwt, int userId, int id){
     	return restTemplate.exchange(baseUrl + "transfer/" + userId + "/" + id, HttpMethod.GET,
-				createAuthEntity(jwt), String.class).getBody();
+				createAuthEntity(jwt), Transfer.class).getBody();
+	}
+
+	public String getUsernameById(int id){
+    	return restTemplate.getForObject(baseUrl + "username/" + id, String.class);
 	}
 
 	public boolean isValidUser(int id){
@@ -68,9 +72,9 @@ public class AuthenticationService {
 				createAuthTransferEntity(currentTransfer, jwt), Boolean.class).getBody();
 	}
 
-	public Integer addTransfer(Transfer transfer, String jwt){
+	public Transfer addTransfer(Transfer transfer, String jwt){
     	return restTemplate.exchange(baseUrl + "transaction", HttpMethod.POST,
-				createAuthTransferEntity(transfer, jwt), Integer.class).getBody();
+				createAuthTransferEntity(transfer, jwt), Transfer.class).getBody();
 	}
 
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {

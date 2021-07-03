@@ -97,17 +97,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		if (isInteger(input)){
 			int id = Integer.parseInt(input);
 			if (id != 0) {
-				String transfer = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id);
-				if (transfer != null) {
-					String[] s = transfer.split("\\|");
-					System.out.println("--------------------------------------------");
-					System.out.println("Transfer Details");
-					System.out.println("--------------------------------------------");
-					System.out.println("Id: " + s[0] + "\nFrom: " + s[1] + "\nTo: " + s[2] +
-							"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
-				} else {
-					System.out.println("Error, the transfer ID you entered is not associated with a transfer.");
-				}
+				printTransfer(authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id));
 			}
 		}
 	}
@@ -150,19 +140,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 					if (authenticationService.sendMoney(currentTransfer, currentUser.getToken())) {
 						currentTransfer.setTransferStatusId(2);
 						currentTransfer.setTransferTypeId(2);
-						Integer newId = authenticationService.addTransfer(currentTransfer, currentUser.getToken());
-						String transfer = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), newId);
-						if (transfer != null) {
-							String[] s = transfer.split("\\|");
-							System.out.println("--------------------------------------------");
-							System.out.println("Transfer Details");
-							System.out.println("--------------------------------------------");
-							System.out.println("Id: " + s[0] + "\nFrom: " + s[1] + "\nTo: " + s[2] +
-									"\nType: " + s[3] + "\nStatus: " + s[4] + "\nAmount: $" + s[5]);
-						} else {
-							System.out.println("Somehow the newly created transfer id got lost along the way " +
-									"or is zero, so transfer is null");
-						}
+						Transfer transfer = authenticationService.addTransfer(currentTransfer, currentUser.getToken());
+						printTransfer(transfer);
+
 					}
 				}
 			}
@@ -258,5 +238,21 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			return false;
 		}
 		return true;
+	}
+
+	private void printTransfer(Transfer t){
+		if (t != null) {
+			System.out.println("--------------------------------------------");
+			System.out.println("Transfer Details");
+			System.out.println("--------------------------------------------");
+			System.out.println("Id: " + t.getTransferId());
+			System.out.println("From: " + authenticationService.getUsernameById(t.getSenderId()));
+			System.out.println("To: " + authenticationService.getUsernameById(t.getReceiverId()));
+			System.out.println("Type: " + t.getTransferTypeDesc());
+			System.out.println("Status: " + t.getTransferStatusDesc());
+			System.out.println("Amount: $" + t.getAmount());
+		} else {
+			System.out.println("Error, the transfer ID you entered is not associated with a transfer.");
+		}
 	}
 }

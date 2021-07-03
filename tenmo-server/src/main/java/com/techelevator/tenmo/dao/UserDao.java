@@ -19,15 +19,9 @@ public interface UserDao {
 
     boolean create(String username, String password);
 
-    BigDecimal getUserBalance(int id);
-
-    List<String> getUserHistory(int id);
-
-    String getTransfer(int userId, int id);
-
     boolean isValidUser(int id);
 
-    boolean sendMoney(Transfer ct);
+    User getUserByAccountId(int accId);
 
-    Integer addTransfer(Transfer t);
+    String getUsernameById(int id);
 }
