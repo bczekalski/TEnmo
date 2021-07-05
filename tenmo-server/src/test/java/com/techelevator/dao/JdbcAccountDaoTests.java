@@ -31,7 +31,6 @@ public class JdbcAccountDaoTests extends TenmoDaoTests{
         Assert.assertEquals(ACCOUNT_1.getAccountId(), sut.getAccountIdByUserId(ACCOUNT_1.getUserId()));
         Assert.assertEquals(ACCOUNT_2.getAccountId(), sut.getAccountIdByUserId(ACCOUNT_2.getUserId()));
         Assert.assertEquals(ACCOUNT_3.getAccountId(), sut.getAccountIdByUserId(ACCOUNT_3.getUserId()));
-
     }
 
     @Test
