@@ -80,8 +80,13 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewCurrentBalance() {
-		System.out.println("Your current account balance is: $" + authenticationService.balance(currentUser.getToken(),
-				authenticationService.getAccIdByUserId(currentUser.getUser().getId())));
+		BigDecimal balance = authenticationService.balance(currentUser.getToken(),
+				authenticationService.getAccIdByUserId(currentUser.getUser().getId()));
+		if (balance == null){
+			System.out.println("There was an error getting your balance.");
+		}else{
+			System.out.println("Your current account balance is: $" + balance);
+		}
 	}
 
 	private void viewTransferHistory() {
