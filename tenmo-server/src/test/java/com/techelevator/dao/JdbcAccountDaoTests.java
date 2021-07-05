@@ -12,9 +12,9 @@ import java.math.BigDecimal;
 
 public class JdbcAccountDaoTests extends TenmoDaoTests{
 
-    private static final Account ACCOUNT_1 = new Account(2001, 1001, BigDecimal.valueOf(970));
-    private static final Account ACCOUNT_2 = new Account(2002, 1002, BigDecimal.valueOf(1040));
-    private static final Account ACCOUNT_3 = new Account(2003, 1003, BigDecimal.valueOf(990));
+    private static final Account ACCOUNT_1 = new Account(2001L, 1001L, BigDecimal.valueOf(970));
+    private static final Account ACCOUNT_2 = new Account(2002L, 1002L, BigDecimal.valueOf(1040));
+    private static final Account ACCOUNT_3 = new Account(2003L, 1003L, BigDecimal.valueOf(990));
     private static final Account ACCOUNT_4 = new Account(2004L, 1004L, BigDecimal.valueOf(100));
 
     private Account testAccount;
@@ -38,6 +38,22 @@ public class JdbcAccountDaoTests extends TenmoDaoTests{
         Assert.assertNull(sut.getUserBalance(ACCOUNT_4.getAccountId()));
         Assert.assertNull(sut.getUserBalance(-20L));
     }
+
+    @Test
+    public void get_account_id_by_user_id_should_return_account_id_for_corresponding_user(){
+        Assert.assertEquals(ACCOUNT_1.getAccountId(), sut.getAccountIdByUserId(ACCOUNT_1.getUserId()));
+        Assert.assertEquals(ACCOUNT_2.getAccountId(), sut.getAccountIdByUserId(ACCOUNT_2.getUserId()));
+        Assert.assertEquals(ACCOUNT_3.getAccountId(), sut.getAccountIdByUserId(ACCOUNT_3.getUserId()));
+
+    }
+
+    @Test
+    public void get_account_id_should_return_0_for_non_valid_user_id(){
+        Assert.assertEquals(0L, sut.getAccountIdByUserId(ACCOUNT_4.getUserId()));
+        Assert.assertEquals(0L, sut.getAccountIdByUserId(-20L));
+    }
+
+
 
 
 

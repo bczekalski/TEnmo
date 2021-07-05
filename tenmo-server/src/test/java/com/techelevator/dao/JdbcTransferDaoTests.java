@@ -14,12 +14,14 @@ import java.util.List;
 
 public class JdbcTransferDaoTests extends TenmoDaoTests{
 
-    private static final Transfer TRANSFER_1 = new Transfer(3001,
-            2, 2, 2001, 2002, BigDecimal.valueOf(50));
-    private static final Transfer TRANSFER_2 = new Transfer(3002,
-            2, 2, 2002, 2003, BigDecimal.valueOf(10));
-    private static final Transfer TRANSFER_3 = new Transfer(3003,
-            2, 2, 2003, 2001, BigDecimal.valueOf(20));
+    private static final Transfer TRANSFER_1 = new Transfer(3001L,
+            2, 2, 2001L, 2002L, BigDecimal.valueOf(50));
+    private static final Transfer TRANSFER_2 = new Transfer(3002L,
+            2, 2, 2002L, 2003L, BigDecimal.valueOf(10));
+    private static final Transfer TRANSFER_3 = new Transfer(3003L,
+            2, 2, 2003L, 2001L, BigDecimal.valueOf(20));
+    private static final Transfer TRANSFER_4 = new Transfer(3004L,
+            2, 2, 2002L, 2001L, BigDecimal.valueOf(20));
 
     private Transfer testTransfer;
 
@@ -34,6 +36,12 @@ public class JdbcTransferDaoTests extends TenmoDaoTests{
         accountDao = new JdbcAccountDao(dataSource);
         sut = new JdbcTransferDao(dataSource, userDao, accountDao);
         this.mapper = new ObjectMapper();
+        TRANSFER_1.setTransferTypeDesc("Send");
+        TRANSFER_1.setTransferStatusDesc("Approved");
+        TRANSFER_2.setTransferTypeDesc("Send");
+        TRANSFER_2.setTransferStatusDesc("Approved");
+        TRANSFER_3.setTransferTypeDesc("Send");
+        TRANSFER_3.setTransferStatusDesc("Approved");
     }
 
     @Test
@@ -55,22 +63,31 @@ public class JdbcTransferDaoTests extends TenmoDaoTests{
 
     @Test
     public void get_transfer_should_return_full_details_of_a_transfer(){
-        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1001,3001L));
-        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1002,3002L));
-        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1003,3003L));
+        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1001, 3001));
+        assertTransfersMatch(TRANSFER_2, sut.getTransfer(1002, 3002));
+        assertTransfersMatch(TRANSFER_3, sut.getTransfer(1003, 3003));
     }
 
+    @Test
+    public void send_money_returns_true_after_lowering_sender_balance_and_raising_receiver_balance(){
+        Assert.assertTrue(sut.sendMoney(TRANSFER_1));
+        Assert.assertTrue(accountDao.getUserBalance(2001L).compareTo(BigDecimal.valueOf(920)) == 0);
+        Assert.assertTrue(accountDao.getUserBalance(2002L).compareTo(BigDecimal.valueOf(1090)) == 0);
+    }
 
-
-
-
-
-
-
+    @Test
+    public void add_transfer_successfully_adds_a_transfer_to_the_database(){
+        testTransfer = TRANSFER_4;
+        long newId = sut.addTransfer(testTransfer);
+        testTransfer.setTransferId(newId);
+        testTransfer.setTransferStatusDesc("Approved");
+        testTransfer.setTransferTypeDesc("Send");
+        assertTransfersMatch(TRANSFER_4, sut.getTransfer(1001, newId));
+    }
 
     private void assertTransfersMatch(Transfer expected, Transfer actual){
         Assert.assertEquals(expected.getTransferId(), actual.getTransferId());
-        Assert.assertEquals(expected.getTransferTypeId(), actual.getTransferTypeId());
+        Assert.assertEquals(expected.getTransferTypeDesc(), actual.getTransferTypeDesc());
         Assert.assertEquals(expected.getTransferStatusDesc(), actual.getTransferStatusDesc());
         Assert.assertEquals(expected.getSenderId(), actual.getSenderId());
         Assert.assertEquals(expected.getReceiverId(), actual.getReceiverId());
