@@ -22,8 +22,10 @@ public class JdbcAccountDao implements AccountDao{
     public long getAccountIdByUserId(long id){
         String sql = "SELECT account_id FROM accounts WHERE user_id = ?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        rowSet.next();
-        return rowSet.getLong("account_id");
+        if (rowSet.next()) {
+            return rowSet.getLong("account_id");
+        }
+        return 0L;
     }
 
     @Override
