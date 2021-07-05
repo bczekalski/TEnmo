@@ -44,12 +44,20 @@ public class JdbcTransferDaoTests extends TenmoDaoTests{
             Transfer temp = mapper.readValue(s, Transfer.class);
             actual.add(temp);
         }
+
         Assert.assertEquals(2, actual.size());
         Transfer t1 = actual.get(0);
         Transfer t2 = actual.get(1);
 
         shortAssertTransferMatch(TRANSFER_1, t1);
         shortAssertTransferMatch(TRANSFER_3, t2);
+    }
+
+    @Test
+    public void get_transfer_should_return_full_details_of_a_transfer(){
+        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1001,3001L));
+        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1002,3002L));
+        assertTransfersMatch(TRANSFER_1, sut.getTransfer(1003,3003L));
     }
 
 
