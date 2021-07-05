@@ -52,6 +52,7 @@ public class JdbcTransferDaoTests extends TenmoDaoTests{
             Transfer temp = mapper.readValue(s, Transfer.class);
             actual.add(temp);
         }
+
         Assert.assertEquals(2, actual.size());
         Transfer t1 = actual.get(0);
         Transfer t2 = actual.get(1);

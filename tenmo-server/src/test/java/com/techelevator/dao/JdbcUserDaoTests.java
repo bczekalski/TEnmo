@@ -6,7 +6,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 public class JdbcUserDaoTests extends TenmoDaoTests{
 
     private static final User USER_1 = new User(1001L, "test 1", "password 1");
