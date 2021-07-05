@@ -33,31 +33,31 @@ public class JdbcTransferDao implements TransferDao {
     public List<String> getUserHistory(long id) throws JsonProcessingException {
         List<Transfer> history = new ArrayList<>();
         List<String> transfers = new ArrayList<>();
-        String sql = "SELECT t.transfer_id, t.account_to, t.amount " +
+        String sql = "SELECT t.transfer_id, t.account_from, t.account_to, t.amount " +
                 "FROM transfers t " +
                 "JOIN accounts a ON t.account_from = a.account_id " +
                 "WHERE a.user_id = ?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
         while(rowSet.next()) {
             Transfer transfer = new Transfer();
-            transfer.setTransferId(rowSet.getInt("transfer_id"));
-            transfer.setSenderId(id);
+            transfer.setTransferId(rowSet.getLong("transfer_id"));
+            transfer.setSenderId(rowSet.getLong("account_from"));
             transfer.setReceiverId(rowSet.getLong("account_to"));
             transfer.setAmount(rowSet.getBigDecimal("amount"));
             transfer.setTransferSent(true);
             history.add(transfer);
         }
 
-        sql = "SELECT t.transfer_id, t.account_from, t.amount " +
+        sql = "SELECT t.transfer_id, t.account_from, t.account_to, t.amount " +
                 "FROM transfers t " +
                 "JOIN accounts a ON t.account_to = a.account_id " +
                 "WHERE a.user_id = ?;";
         rowSet = jdbcTemplate.queryForRowSet(sql, id);
         while(rowSet.next()){
             Transfer transfer = new Transfer();
-            transfer.setTransferId(rowSet.getInt("transfer_id"));
+            transfer.setTransferId(rowSet.getLong("transfer_id"));
             transfer.setSenderId(rowSet.getLong("account_from"));
-            transfer.setReceiverId(id);
+            transfer.setReceiverId(rowSet.getLong("account_to"));
             transfer.setAmount(rowSet.getBigDecimal("amount"));
             transfer.setTransferSent(false);
             history.add(transfer);

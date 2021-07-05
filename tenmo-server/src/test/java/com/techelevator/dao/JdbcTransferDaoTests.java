@@ -58,19 +58,21 @@ public class JdbcTransferDaoTests extends TenmoDaoTests{
 
 
 
+
+
     private void assertTransfersMatch(Transfer expected, Transfer actual){
         Assert.assertEquals(expected.getTransferId(), actual.getTransferId());
         Assert.assertEquals(expected.getTransferTypeId(), actual.getTransferTypeId());
         Assert.assertEquals(expected.getTransferStatusDesc(), actual.getTransferStatusDesc());
         Assert.assertEquals(expected.getSenderId(), actual.getSenderId());
         Assert.assertEquals(expected.getReceiverId(), actual.getReceiverId());
-        Assert.assertEquals(expected.getAmount(), actual.getAmount());
+        Assert.assertTrue(expected.getAmount().compareTo(actual.getAmount()) == 0);
     }
 
     private void shortAssertTransferMatch(Transfer expected, Transfer actual){
         Assert.assertEquals(expected.getTransferId(), actual.getTransferId());
         Assert.assertEquals(expected.getSenderId(), actual.getSenderId());
         Assert.assertEquals(expected.getReceiverId(), actual.getReceiverId());
-        Assert.assertEquals(expected.getAmount(), actual.getAmount());
+        Assert.assertTrue(expected.getAmount().compareTo(actual.getAmount()) == 0);
     }
 }
