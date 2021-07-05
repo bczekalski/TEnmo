@@ -32,6 +32,7 @@ public class JdbcAccountDaoTests extends TenmoDaoTests{
         Assert.assertTrue(ACCOUNT_2.getBalance().compareTo(sut.getUserBalance(ACCOUNT_2.getAccountId())) == 0);
         Assert.assertTrue(ACCOUNT_3.getBalance().compareTo(sut.getUserBalance(ACCOUNT_3.getAccountId())) == 0);
     }
+    //these are tests
 
     @Test
     public void get_user_balance_return_null_for_non_valid_account_id(){
