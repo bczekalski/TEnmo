@@ -4,33 +4,47 @@ import java.math.BigDecimal;
 
 public class Transfer {
 
-    private int senderId;
-    private int receiverId;
+    private long transferId;
+    private long senderId;
+    private long receiverId;
     private BigDecimal amount;
     private int transferTypeId;
     private int transferStatusId;
+    private String transferStatusDesc;
+    private String transferTypeDesc;
+    //boolean used for checking if transfer stored during getUserHistory is being sent or received
+    private boolean transferSent;
 
     public Transfer(){}
 
-    public Transfer(int senderId, int receiverId, BigDecimal amount){
+    public Transfer(long senderId, long receiverId, BigDecimal amount){
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.amount = amount;
     }
 
-    public int getSenderId() {
+    public Transfer(long transferId, int transferTypeId, int transferStatusId, long senderId, long receiverId, BigDecimal amount){
+        this.transferId = transferId;
+        this.transferTypeId = transferTypeId;
+        this.transferStatusId = transferStatusId;
+        this.senderId = senderId;
+        this.receiverId = receiverId;
+        this.amount = amount;
+    }
+
+    public long getSenderId() {
         return senderId;
     }
 
-    public void setSenderId(int senderId) {
+    public void setSenderId(long senderId) {
         this.senderId = senderId;
     }
 
-    public int getReceiverId() {
+    public long getReceiverId() {
         return receiverId;
     }
 
-    public void setReceiverId(int receiverId) {
+    public void setReceiverId(long receiverId) {
         this.receiverId = receiverId;
     }
 
@@ -56,5 +70,37 @@ public class Transfer {
 
     public void setTransferTypeId(int transferTypeId) {
         this.transferTypeId = transferTypeId;
+    }
+
+    public long getTransferId() {
+        return transferId;
+    }
+
+    public void setTransferId(long transferId) {
+        this.transferId = transferId;
+    }
+
+    public String getTransferStatusDesc() {
+        return transferStatusDesc;
+    }
+
+    public void setTransferStatusDesc(String transferStatusDesc) {
+        this.transferStatusDesc = transferStatusDesc;
+    }
+
+    public String getTransferTypeDesc() {
+        return transferTypeDesc;
+    }
+
+    public void setTransferTypeDesc(String transferTypeDesc) {
+        this.transferTypeDesc = transferTypeDesc;
+    }
+
+    public boolean isTransferSent() {
+        return transferSent;
+    }
+
+    public void setTransferSent(boolean transferSent) {
+        this.transferSent = transferSent;
     }
 }

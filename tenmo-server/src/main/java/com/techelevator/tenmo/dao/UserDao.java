@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 
@@ -9,25 +10,21 @@ import java.util.Map;
 
 public interface UserDao {
 
-    List<User> findAll();
-
     Map<String, String> listUsers();
 
     User findByUsername(String username);
 
-    int findIdByUsername(String username);
+    long findIdByUsername(String username);
 
     boolean create(String username, String password);
 
-    BigDecimal getUserBalance(int id);
+    boolean isValidUser(long id);
 
-    List<String> getUserHistory(int id);
+    User getUserByAccountId(long accId);
 
-    String getTransfer(int userId, int id);
+    String getUsernameById(long id);
 
-    boolean isValidUser(int id);
+    long getUserIdByAccountId(long accId);
 
-    boolean sendMoney(Transfer ct);
-
-    Integer addTransfer(Transfer t);
+    String getUsernameByAccId(long accId);
 }

@@ -40,11 +40,11 @@ public class AuthenticationService {
         sendRegistrationRequest(entity);
     }
 
-    public BigDecimal balance(String jwt, int id){
+    public BigDecimal balance(String jwt, long id){
 		return restTemplate.exchange(baseUrl + "balance/" + id, HttpMethod.GET, createAuthEntity(jwt), BigDecimal.class).getBody();
 	}
 
-	public List transferHistory(String jwt, int id){
+	public List transferHistory(String jwt, long id){
     	return restTemplate.exchange(baseUrl + "history/" + id, HttpMethod.GET,
 				createAuthEntity(jwt), List.class).getBody();
 	}
@@ -54,12 +54,24 @@ public class AuthenticationService {
 				createAuthEntity(jwt), Map.class).getBody();
 	}
 
-	public String getTransfer(String jwt, int userId, int id){
+	public Transfer getTransfer(String jwt, long userId, long id){
     	return restTemplate.exchange(baseUrl + "transfer/" + userId + "/" + id, HttpMethod.GET,
-				createAuthEntity(jwt), String.class).getBody();
+				createAuthEntity(jwt), Transfer.class).getBody();
 	}
 
-	public boolean isValidUser(int id){
+	public String getUsernameById(long id){
+    	return restTemplate.getForObject(baseUrl + "username/" + id, String.class);
+	}
+
+	public long getAccIdByUserId(long id){
+    	return restTemplate.getForObject(baseUrl + "user/account/" + id, Long.class);
+	}
+
+	public String getUsernameByAccId(long id){
+    	return restTemplate.getForObject(baseUrl + "account/username/" + id, String.class);
+	}
+
+	public boolean isValidUser(long id){
     	return restTemplate.getForObject(baseUrl + "valid/" + id, Boolean.class);
 	}
 
@@ -68,9 +80,9 @@ public class AuthenticationService {
 				createAuthTransferEntity(currentTransfer, jwt), Boolean.class).getBody();
 	}
 
-	public Integer addTransfer(Transfer transfer, String jwt){
+	public Long addTransfer(Transfer transfer, String jwt){
     	return restTemplate.exchange(baseUrl + "transaction", HttpMethod.POST,
-				createAuthTransferEntity(transfer, jwt), Integer.class).getBody();
+				createAuthTransferEntity(transfer, jwt), Long.class).getBody();
 	}
 
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {
