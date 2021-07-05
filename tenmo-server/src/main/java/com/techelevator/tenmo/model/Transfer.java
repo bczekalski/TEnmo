@@ -100,10 +100,6 @@ public class Transfer {
         this.transferTypeDesc = transferTypeDesc;
     }
 
-    public boolean isTransferSent() {
-        return transferSent;
-    }
-
     public void setTransferSent(boolean transferSent) {
         this.transferSent = transferSent;
     }
