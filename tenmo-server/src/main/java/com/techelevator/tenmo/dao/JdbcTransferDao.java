@@ -4,7 +4,6 @@ package com.techelevator.tenmo.dao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.User;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -35,7 +34,7 @@ public class JdbcTransferDao implements TransferDao {
         List<String> transfers = new ArrayList<>();
         String sql = "SELECT t.transfer_id, t.account_from, t.account_to, t.amount " +
                 "FROM transfers t " +
-                "JOIN accounts a ON t.account_from = a.account_id " +
+                "JOIN accounts a ON t.account_from = a.account_id OR t.account_to = a.account_id " +
                 "WHERE a.user_id = ?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, id);
         while(rowSet.next()) {
@@ -44,22 +43,6 @@ public class JdbcTransferDao implements TransferDao {
             transfer.setSenderId(rowSet.getLong("account_from"));
             transfer.setReceiverId(rowSet.getLong("account_to"));
             transfer.setAmount(rowSet.getBigDecimal("amount"));
-            transfer.setTransferSent(true);
-            history.add(transfer);
-        }
-
-        sql = "SELECT t.transfer_id, t.account_from, t.account_to, t.amount " +
-                "FROM transfers t " +
-                "JOIN accounts a ON t.account_to = a.account_id " +
-                "WHERE a.user_id = ?;";
-        rowSet = jdbcTemplate.queryForRowSet(sql, id);
-        while(rowSet.next()){
-            Transfer transfer = new Transfer();
-            transfer.setTransferId(rowSet.getLong("transfer_id"));
-            transfer.setSenderId(rowSet.getLong("account_from"));
-            transfer.setReceiverId(rowSet.getLong("account_to"));
-            transfer.setAmount(rowSet.getBigDecimal("amount"));
-            transfer.setTransferSent(false);
             history.add(transfer);
         }
         for (Transfer t : history){

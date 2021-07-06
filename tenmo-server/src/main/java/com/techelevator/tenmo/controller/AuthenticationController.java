@@ -32,15 +32,13 @@ public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private UserDao userDao;
     private TransferDao transferDao;
-    private AccountDao accountDao;
 
     public AuthenticationController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder,
-                                    UserDao userDao, TransferDao transferDao, AccountDao accountDao) {
+                                    UserDao userDao, TransferDao transferDao) {
         this.tokenProvider = tokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.userDao = userDao;
         this.transferDao = transferDao;
-        this.accountDao = accountDao;
 
     }
 
@@ -65,68 +63,6 @@ public class AuthenticationController {
         if (!userDao.create(newUser.getUsername(), newUser.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User registration failed.");
         }
-    }
-
-    @RequestMapping(path = "/balance/{id}", method = RequestMethod.GET)
-    @PreAuthorize("isAuthenticated()")
-    public BigDecimal getBalance(@PathVariable long id){
-        return accountDao.getUserBalance(id);
-    }
-
-    @RequestMapping(path = "/username/{id}", method = RequestMethod.GET)
-    public String getUsernameById(@PathVariable long id){
-        return userDao.getUsernameById(id);
-    }
-
-    @RequestMapping(path = "/account/username/{id}", method = RequestMethod.GET)
-    public String getUsernameByAccId(@PathVariable long id){
-        return userDao.getUsernameByAccId(id);
-    }
-
-    @RequestMapping(path = "account/user/{id}", method = RequestMethod.GET)
-    public long getUserIdByAccId(@PathVariable long id){
-        return userDao.getUserIdByAccountId(id);
-    }
-
-    @RequestMapping(path = "user/account/{id}", method = RequestMethod.GET)
-    public long getAccIdByUserId(@PathVariable long id){
-        return accountDao.getAccountIdByUserId(id);
-    }
-
-    @RequestMapping(path = "/history/{id}", method = RequestMethod.GET)
-    @PreAuthorize("isAuthenticated()")
-    public List<String> getHistory(@PathVariable long id) throws JsonProcessingException {
-        return transferDao.getUserHistory(id);
-    }
-
-    @RequestMapping(path = "/list", method = RequestMethod.GET)
-    @PreAuthorize("isAuthenticated()")
-    public Map<String, String> listAll(){
-        return userDao.listUsers();
-    }
-
-    @RequestMapping(path = "/transfer/{userID}/{id}", method = RequestMethod.GET)
-    @PreAuthorize("isAuthenticated()")
-    public Transfer getTransfer(@PathVariable long userID, @PathVariable long id) {
-        return transferDao.getTransfer(userID, id);
-    }
-
-    @RequestMapping(path = "/valid/{id}", method = RequestMethod.GET)
-    public boolean isValidUser(@PathVariable long id){
-        return userDao.isValidUser(id);
-    }
-
-    @RequestMapping(path = "/send", method = RequestMethod.POST)
-    @PreAuthorize("isAuthenticated()")
-    public boolean sendMoney(@Valid @RequestBody Transfer currentTransfer){
-        return transferDao.sendMoney(currentTransfer);
-    }
-
-    @ResponseStatus(HttpStatus.CREATED)
-    @RequestMapping(path = "/transaction", method = RequestMethod.POST)
-    @PreAuthorize("isAuthenticated()")
-    public long addTransfer(@Valid @RequestBody Transfer transfer) {
-        return transferDao.addTransfer(transfer);
     }
 
     /**

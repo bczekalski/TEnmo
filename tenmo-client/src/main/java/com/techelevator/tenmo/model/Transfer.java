@@ -12,8 +12,6 @@ public class Transfer {
     private int transferStatusId;
     private String transferStatusDesc;
     private String transferTypeDesc;
-    //boolean used for checking if transfer stored during getUserHistory is being sent or received
-    private boolean transferSent;
 
     public Transfer(){}
 
@@ -94,13 +92,5 @@ public class Transfer {
 
     public void setTransferTypeDesc(String transferTypeDesc) {
         this.transferTypeDesc = transferTypeDesc;
-    }
-
-    public boolean isTransferSent() {
-        return transferSent;
-    }
-
-    public void setTransferSent(boolean transferSent) {
-        this.transferSent = transferSent;
     }
 }
