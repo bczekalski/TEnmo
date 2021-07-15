@@ -6,8 +6,7 @@ import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
-import com.techelevator.tenmo.services.AuthenticationService;
-import com.techelevator.tenmo.services.AuthenticationServiceException;
+import com.techelevator.tenmo.services.*;
 import com.techelevator.view.ConsoleService;
 
 import java.math.BigDecimal;
@@ -36,16 +35,24 @@ private static final String API_BASE_URL = "http://localhost:8080/";
     private ConsoleService console;
     private AuthenticationService authenticationService;
     private ObjectMapper mapper;
+    private UserService userService;
+    private AccountService accountService;
+    private TransferService transferService;
 
     public static void main(String[] args) {
-    	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL));
+    	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL),
+				new UserService(API_BASE_URL), new AccountService(API_BASE_URL), new TransferService(API_BASE_URL));
     	app.run();
     }
 
-    public App(ConsoleService console, AuthenticationService authenticationService) {
+    public App(ConsoleService console, AuthenticationService authenticationService, UserService userService,
+			   AccountService accountService, TransferService transferService) {
 		this.console = console;
 		this.authenticationService = authenticationService;
 		this.mapper = new ObjectMapper();
+		this.userService = userService;
+		this.accountService = accountService;
+		this.transferService = transferService;
 	}
 
 	public void run() {
@@ -80,8 +87,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewCurrentBalance() {
-		BigDecimal balance = authenticationService.balance(currentUser.getToken(),
-				authenticationService.getAccIdByUserId(currentUser.getUser().getId()));
+		BigDecimal balance = accountService.balance(currentUser.getToken(),
+				accountService.getAccIdByUserId(currentUser.getUser().getId()));
 		if (balance == null){
 			System.out.println("There was an error getting your balance.");
 		}else{
@@ -91,7 +98,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void viewTransferHistory() {
     	//Map the transfers to a list of strings with the strings being JSON
-		List<String> jsonHistory = authenticationService.transferHistory(currentUser.getToken(), currentUser.getUser().getId());
+		List<String> jsonHistory = transferService.transferHistory(currentUser.getToken(), currentUser.getUser().getId());
 		List<Transfer> history = new ArrayList<>();
 		boolean historySuccess = false;
 		//try to turn the JSON back into transfer objects and put them in a list
@@ -111,12 +118,12 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			System.out.println("ID          From/To                 Amount");
 			System.out.println("-------------------------------------------");
 			for (Transfer t : history) {
-				if (t.isTransferSent()) {
+				if (accountService.getAccIdByUserId(currentUser.getUser().getId()) == t.getSenderId()) {
 					System.out.println(t.getTransferId() + " \t\t " + "To: " +
-							authenticationService.getUsernameByAccId(t.getReceiverId()) + " \t\t\t " + t.getAmount());
+							userService.getUsernameByAccId(t.getReceiverId()) + " \t\t\t " + t.getAmount());
 				} else {
 					System.out.println(t.getTransferId() + " \t\t " + "From: " +
-							authenticationService.getUsernameByAccId(t.getSenderId()) + " \t\t\t " + t.getAmount());
+							userService.getUsernameByAccId(t.getSenderId()) + " \t\t\t " + t.getAmount());
 				}
 			}
 			System.out.println("-------------------------------------------");
@@ -127,7 +134,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			if (isLong(input)) {
 				long id = Long.parseLong(input);
 				if (id != 0) { //if it is 0, it must return to main menu, so if it isn't zero we should try to get the transfer
-					Transfer t = authenticationService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id);
+					Transfer t = transferService.getTransfer(currentUser.getToken(), currentUser.getUser().getId(), id);
 					printTransfer(t);
 				}
 			}
@@ -144,7 +151,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		System.out.println("ID \t\t Name");
 		System.out.println("-------------------------------------------");
 		//acquires a map of all usernames and ids for printing
-		Map<String, String> users = authenticationService.listAll(currentUser.getToken());
+		Map<String, String> users = userService.listAll(currentUser.getToken());
 		//prints out the users in formatting from above
 		for (String key : users.keySet()) {
 			System.out.println(key + "\t\t" + users.get(key));
@@ -159,24 +166,24 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			if (currentUser.getUser().getId() != Long.parseLong(input)) {
 				long receiverId = Long.parseLong(input);
 				//confirm that the id entered is a valid user id
-				if (authenticationService.isValidUser(receiverId)) {
+				if (userService.isValidUser(receiverId)) {
 					System.out.println("Enter amount: ");
 					input = scanner.nextLine();
 					//confirm that the amount is a proper number that can be used
 					if (isDouble(input)){
 						BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(input));
 						//confirm that the amount entered is not greater than the user's balance
-						if (authenticationService.balance(currentUser.getToken(),
-								authenticationService.getAccIdByUserId(currentUser.getUser().getId())).
+						if (accountService.balance(currentUser.getToken(),
+								accountService.getAccIdByUserId(currentUser.getUser().getId())).
 								compareTo(amount) > 0) {
 							//Assign the known values to a transfer to pass it to the server
-							Transfer currentTransfer = new Transfer(authenticationService.getAccIdByUserId(currentUser.getUser().getId()),
-									authenticationService.getAccIdByUserId(receiverId), amount);
+							Transfer currentTransfer = new Transfer(accountService.getAccIdByUserId(currentUser.getUser().getId()),
+									accountService.getAccIdByUserId(receiverId), amount);
 							//pass it to the server and ensure that no issues occurred during it sending
-							if (authenticationService.sendMoney(currentTransfer, currentUser.getToken())) {
+							if (transferService.sendMoney(currentTransfer, currentUser.getToken())) {
 								currentTransfer.setTransferStatusId(2);
 								currentTransfer.setTransferTypeId(2);
-								Long newId = authenticationService.addTransfer(currentTransfer, currentUser.getToken());
+								Long newId = transferService.addTransfer(currentTransfer, currentUser.getToken());
 								currentTransfer.setTransferId(newId);
 								currentTransfer.setTransferStatusDesc("Approved");
 								currentTransfer.setTransferTypeDesc("Send");
@@ -310,8 +317,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			System.out.println("Transfer Details");
 			System.out.println("--------------------------------------------");
 			System.out.println("Id: " + t.getTransferId());
-			System.out.println("From: " + authenticationService.getUsernameByAccId(t.getSenderId()));
-			System.out.println("To: " + authenticationService.getUsernameByAccId(t.getReceiverId()));
+			System.out.println("From: " + userService.getUsernameByAccId(t.getSenderId()));
+			System.out.println("To: " + userService.getUsernameByAccId(t.getReceiverId()));
 			System.out.println("Type: " + t.getTransferTypeDesc());
 			System.out.println("Status: " + t.getTransferStatusDesc());
 			System.out.println("Amount: $" + t.getAmount());

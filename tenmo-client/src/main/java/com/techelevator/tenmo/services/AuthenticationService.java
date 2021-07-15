@@ -2,13 +2,10 @@ package com.techelevator.tenmo.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.UserCredentials;
-import org.springframework.web.util.UriComponentsBuilder;
 
 public class AuthenticationService {
 
@@ -39,51 +35,6 @@ public class AuthenticationService {
     	HttpEntity<UserCredentials> entity = createRequestEntity(credentials);
         sendRegistrationRequest(entity);
     }
-
-    public BigDecimal balance(String jwt, long id){
-		return restTemplate.exchange(baseUrl + "balance/" + id, HttpMethod.GET, createAuthEntity(jwt), BigDecimal.class).getBody();
-	}
-
-	public List transferHistory(String jwt, long id){
-    	return restTemplate.exchange(baseUrl + "history/" + id, HttpMethod.GET,
-				createAuthEntity(jwt), List.class).getBody();
-	}
-
-	public Map listAll(String jwt){
-    	return restTemplate.exchange(baseUrl + "list", HttpMethod.GET,
-				createAuthEntity(jwt), Map.class).getBody();
-	}
-
-	public Transfer getTransfer(String jwt, long userId, long id){
-    	return restTemplate.exchange(baseUrl + "transfer/" + userId + "/" + id, HttpMethod.GET,
-				createAuthEntity(jwt), Transfer.class).getBody();
-	}
-
-	public String getUsernameById(long id){
-    	return restTemplate.getForObject(baseUrl + "username/" + id, String.class);
-	}
-
-	public long getAccIdByUserId(long id){
-    	return restTemplate.getForObject(baseUrl + "user/account/" + id, Long.class);
-	}
-
-	public String getUsernameByAccId(long id){
-    	return restTemplate.getForObject(baseUrl + "account/username/" + id, String.class);
-	}
-
-	public boolean isValidUser(long id){
-    	return restTemplate.getForObject(baseUrl + "valid/" + id, Boolean.class);
-	}
-
-	public boolean sendMoney(Transfer currentTransfer, String jwt){
-    	return restTemplate.exchange(baseUrl + "send", HttpMethod.POST,
-				createAuthTransferEntity(currentTransfer, jwt), Boolean.class).getBody();
-	}
-
-	public Long addTransfer(Transfer transfer, String jwt){
-    	return restTemplate.exchange(baseUrl + "transaction", HttpMethod.POST,
-				createAuthTransferEntity(transfer, jwt), Long.class).getBody();
-	}
 
 	private HttpEntity<UserCredentials> createRequestEntity(UserCredentials credentials) {
     	HttpHeaders headers = new HttpHeaders();
